@@ -1,6 +1,9 @@
 module ImagesMeta
 
-using ImagesCore, ImagesAxes, Colors
+# The order here is designed to avoid an ambiguity warning in convert,
+# see the top of ImagesAxes
+using ImagesAxes
+using ImagesCore, Colors
 
 export
     # types
@@ -73,7 +76,8 @@ function Base.copy!(imgdest::ImageMeta, imgsrc::ImageMeta, prop1::AbstractString
 end
 
 # similar
-Base.similar{T}(img::ImageMeta, ::Type{T}, shape) = ImageMeta(similar(img.data, T, shape), deepcopy(img.properties))
+Base.similar(img::ImageMeta, T::Type, shape::Dims) = ImageMeta(similar(img.data, T, shape), deepcopy(img.properties))
+Base.similar(img::ImageMeta, T::Type, shape::Base.DimsOrInds) = ImageMeta(similar(img.data, T, shape), deepcopy(img.properties))
 
 # Create a new "Image" (could be just an Array) copying the properties
 # but replacing the data
@@ -184,7 +188,7 @@ When permuting the dimensions of an ImageMeta, you can optionally
 specify that certain properties are spatial and they will also be
 permuted. `spatialprops` defaults to `spatialproperties(img)`.
 """
-function Base.permutedims(img::ImageMeta, p::Union{Vector{Int}, Tuple{Vararg{Int}}}, spatialprops::Vector = spatialproperties(img))
+function Base.permutedims(img::ImageMeta, p::Union{Vector{Int}, Tuple{Int,Vararg{Int}}}, spatialprops::Vector = spatialproperties(img))
     if length(p) != ndims(img)
         error("The permutation must have length equal to the number of dimensions")
     end
@@ -213,8 +217,8 @@ function Base.permutedims(img::ImageMeta, p::Union{Vector{Int}, Tuple{Vararg{Int
     ret
 end
 
-Base.permutedims(img::AxisArray, pstr::Union{Vector{Symbol},Tuple{Vararg{Symbol}}}) = permutedims(img, permutation(axisnames, pstr))
-Base.permutedims(img::ImageMeta, pstr::Union{Vector{Symbol},Tuple{Vararg{Symbol}}}, spatialprops::Vector = String[]) = permutedims(img, permutation(axisnames, pstr), spatialprops)
+Base.permutedims(img::AxisArray, pstr::Union{Vector{Symbol},Tuple{Symbol,Vararg{Symbol}}}) = permutedims(img, permutation(axisnames, pstr))
+Base.permutedims(img::ImageMeta, pstr::Union{Vector{Symbol},Tuple{Symbol,Vararg{Symbol}}}, spatialprops::Vector = String[]) = permutedims(img, permutation(axisnames, pstr), spatialprops)
 
 Base.ctranspose{T}(img::ImageMeta{T,2}) = permutedims(img, (2,1))
 

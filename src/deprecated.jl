@@ -10,7 +10,8 @@ Base.@deprecate_binding Image ImageMeta
 
 #### Indexing ####
 
-Base.setindex!(img::AbstractImage, X, dimname::AbstractString, ind::Base.ViewIndex, nameind...) = error("for named dimensions, please switch to ImagesAxes")
+Base.setindex!(img::AxisArray, X, dimname::AbstractString, ind::Base.ViewIndex, nameind...) = error("for named dimensions, please switch to ImagesAxes")
+Base.setindex!(img::AbstractArray, X, dimname::AbstractString, ind::Base.ViewIndex, nameind...) = error("for named dimensions, please switch to ImagesAxes")
 
 Base.view(img::AbstractImage, dimname::AbstractString, ind::Base.ViewIndex, args...) = error("for named dimensions, please switch to ImagesAxes")
 
