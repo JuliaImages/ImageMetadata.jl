@@ -1,34 +1,18 @@
 module ImagesMeta
 
-using ImagesCore, ImagesAxes
+using ImagesCore, ImagesAxes, Colors
 
 export
     # types
     ImageMeta,
 
     # functions
-    assert_timedim_last,
-    assert_xfirst,
-    assert_yfirst,
-    coords_spatial,
     copyproperties,
     data,
     getindexim,
-    height,
-    isxfirst,
-    isyfirst,
-    nimages,
-    pixelspacing,
     properties,
-    sdims,
-    size_spatial,
     shareproperties,
-    spacedirections,
-    spatialorder,
-    spatialproperties,
-    timedim,
-    width,
-    widthheight
+    spatialproperties
 
 #### types and constructors ####
 
@@ -75,7 +59,7 @@ end
 end
 
 # Adding or changing a property via setindex!
-Base.setindex!(img::AbstractImage, X, propname::AbstractString) = setindex!(img.properties, X, propname)
+Base.setindex!(img::ImageMeta, X, propname::AbstractString) = setindex!(img.properties, X, propname)
 
 Base.copy(img::ImageMeta) = ImageMeta(copy(img.data), deepcopy(img.properties))
 
@@ -108,8 +92,8 @@ Base.delete!(img::ImageMeta, propname::AbstractString) = delete!(img.properties,
 
 # getindexim and viewim return an ImageMeta. The first copies the
 # properties, the second shares them.
-getindexim(img::AbstractImage, I...) = copyproperties(img, img.data[I...])
-viewim(img::AbstractImage, I...) = shareproperties(img, view(img.data, I...))
+getindexim(img::ImageMeta, I...) = copyproperties(img, img.data[I...])
+viewim(img::ImageMeta, I...) = shareproperties(img, view(img.data, I...))
 
 # Iteration
 # Defer to the array object in case it has special iteration defined
@@ -145,7 +129,7 @@ macro get(img, k, default)
     quote
         img, k = $(esc(img)), $(esc(k))
         local val
-        if !isa(img, AbstractImage)
+        if !isa(img, ImageMeta)
             val = $(esc(default))
         else
             index = Base.ht_keyindex(img.properties, k)
@@ -155,122 +139,52 @@ macro get(img, k, default)
     end
 end
 
-"""
-    timedim(img) -> d::Int
+ImagesAxes.timedim(img::ImageMetaAxis) = timedim(data(img))
 
-Return the dimension of the array used for encoding time, or 0 if not
-using an axis for this purpose.
-
-Note: if you want to recover information about the time axis, it is
-generally much better to use `timeaxis`.
-"""
-timedim{T,N}(img::AxisArray{T,N}) = _timedim(filter_time_axis(axes(img), ntuple(identity, Val{N})))
-timedim(img::ImageMetaAxis) = timedim(data(img))
-_timedim(dim::Tuple{Int}) = dim[1]
-_timedim(::Tuple{}) = 0
-
-pixelspacing(img::AbstractArray) = ones(ndims(img))
-pixelspacing(img::AxisArray) = map(step, axisvalues(img))
-pixelspacing(img::ImageMetaAxis) = pixelspacing(data(img))
-
-
-spacedirections(img::ImageMeta) = @get img "spacedirections" _spacedirections(img)
-function _spacedirections(img::AbstractArray)
-    ps = pixelspacing(img)
-    T = eltype(ps)
-    nd = length(ps)
-    Vector{T}[(tmp = zeros(T, nd); tmp[i] = ps[i]; tmp) for i = 1:nd]
-end
-
-# number of spatial dimensions in the image
-@traitfn sdims{AA<:AxisArray; !HasTimeAxis{AA}}(img::AA) = ndims(img)
-@traitfn sdims{AA<:AxisArray;  HasTimeAxis{AA}}(img::AA) = ndims(img)-1
-sdims(img::ImageMetaAxis) = sdims(data(img))
-sdims(img::AbstractArray) = ndims(img)
+ImagesCore.pixelspacing(img::ImageMetaAxis) = pixelspacing(data(img))
 
 """
-   coords_spatial(img)
+    spacedirections(img)
 
-Return a tuple listing the spatial dimensions of `img`.
+Using ImagesMeta, you can set this property manually. For example, you
+could indicate that a photograph was taken with the camera tilted
+30-degree relative to vertical using
 
-Note that a better strategy may be to use ImagesAxes and take slices along the time axis.
+```
+img["spacedirections"] = ((0.866025,-0.5),(0.5,0.866025))
+```
+
+If not specified, it will be computed from `pixelspacing(img)`, placing the
+spacing along the "diagonal".  If desired, you can set this property in terms of
+physical units, and each axis can have distinct units.
 """
-coords_spatial(img) = collect(1:ndims(img))
-coords_spatial{T,N}(img::AxisArray{T,N}) = filter_spatial_axes(axes(img), ntuple(identity, Val{N}))
-coords_spatial(img::ImageMetaAxis) = coords_spatial(data(img))
+ImagesCore.spacedirections(img::ImageMeta) = @get img "spacedirections" ImagesCore._spacedirections(img)
+ImagesCore.spacedirections(img::ImageMetaAxis) = @get img "spacedirections" spacedirections(data(img))
 
-# order of spatial dimensions
-spatialorder(img::AxisArray) = filter_spatial_axes(axes(img), axisnames(img))
-spatialorder(img::ImageMetaAxis) = spatialorder(data(img))
+ImagesCore.sdims(img::ImageMetaAxis) = sdims(data(img))
 
-# number of time slices
-nimages(img::AbstractArray) = 1
-nimages(img::AxisArray) = _nimages(timeaxis(img))
-nimages(img::ImageMetaAxis) = nimages(data(img))
-_nimages() = 1
-_nimages(ax::Axis) = length(ax)
+ImagesCore.coords_spatial(img::ImageMetaAxis) = coords_spatial(data(img))
 
-# size of the spatial grid
-size_spatial(img) = size(img)
-size_spatial(img::AxisArray) = filter_spatial_axes(axes(img), size(img))
-size_spatial(img::ImageMetaAxis) = size_spatial(data(img))
+ImagesCore.spatialorder(img::ImageMetaAxis) = spatialorder(data(img))
 
-indices_spatial(img) = indices(img)
-indices_spatial(img::AxisArray) = filter_spatial_axes(axes(img), indices(img))
-indices_spatial(img::ImageMetaAxis) = indices_spatial(data(img))
+ImagesCore.nimages(img::ImageMetaAxis) = nimages(data(img))
 
-filter_spatial_axes{N}(axes::NTuple{N,Axis}, items::NTuple{N}) =
-    _filter_spatial_axes(axes, items)
-@inline @traitfn _filter_spatial_axes{Ax<:Axis;  TimeAxis{Ax}}(axes::Tuple{Ax,Vararg{Any}}, items) =
-    _filter_spatial_axes(tail(axes), tail(items))
-@inline @traitfn _filter_spatial_axes{Ax<:Axis; !TimeAxis{Ax}}(axes::Tuple{Ax,Vararg{Any}}, items) =
-    (items[1], _filter_spatial_axes(tail(axes), tail(items))...)
+ImagesCore.size_spatial(img::ImageMetaAxis) = size_spatial(data(img))
 
-filter_time_axis{N}(axes::NTuple{N,Axis}, items::NTuple{N}) =
-    _filter_time_axis(axes, items)
-@inline @traitfn _filter_time_axis{Ax<:Axis; !TimeAxis{Ax}}(axes::Tuple{Ax,Vararg{Any}}, items) =
-    _filter_time_axis(tail(axes), tail(items))
-@inline @traitfn _filter_time_axis{Ax<:Axis;  TimeAxis{Ax}}(axes::Tuple{Ax,Vararg{Any}}, items) =
-    (items[1], _filter_time_axis(tail(axes), tail(items))...)
+ImagesCore.indices_spatial(img::ImageMetaAxis) = indices_spatial(data(img))
 
-
-#### Utilities for writing "simple algorithms" safely ####
-# If you don't feel like supporting multiple representations, call these
-
-# Check that the time dimension, if present, is last
-assert_timedim_last(img::AbstractArray) = nothing
-@traitfn function assert_timedim_last{AA<:AxisArray; HasTimeAxis{AA}}(img::AA)
-    ax = axes(img)[end]
-    istimeaxis(ax) || error("time dimension is not last")
-    nothing
-end
-@traitfn assert_timedim_last{AA<:AxisArray; !HasTimeAxis{AA}}(img::AA) = nothing
-assert_timedim_last(img::ImageMetaAxis) = assert_timedim_last(data(img))
-
-# Spatial storage order
-isyfirst(img::AbstractArray) = spatialorder(img)[1] == :y
-function assert_yfirst(img)
-    if !isyfirst(img)
-        error("Image must have y as its first dimension")
-    end
-end
-isxfirst(img::AbstractArray) = spatialorder(img)[1] == :x
-function assert_xfirst(img::AbstractArray)
-    if !isxfirst(img)
-        error("Image must have x as its first dimension")
-    end
-end
+ImagesCore.assert_timedim_last(img::ImageMetaAxis) = assert_timedim_last(data(img))
 
 #### Permutations over dimensions ####
 
-# TODO: decide about the default storage order!!
-widthheight(img::AbstractArray) = size(img,1), size(img,2)
+"""
+    permutedims(img, perm, [spatialprops])
 
-width(img::AbstractArray) = widthheight(img)[1]
-height(img::AbstractArray) = widthheight(img)[2]
-
-# Permute the dimensions of an image, also permuting the relevant properties. If you have non-default properties that are vectors or matrices relative to spatial dimensions, include their names in the list of spatialprops.
-function permutedims(img::ImageMeta, p::Union{Vector{Int}, Tuple{Vararg{Int}}}, spatialprops::Vector = spatialproperties(img))
+When permuting the dimensions of an ImageMeta, you can optionally
+specify that certain properties are spatial and they will also be
+permuted. `spatialprops` defaults to `spatialproperties(img)`.
+"""
+function Base.permutedims(img::ImageMeta, p::Union{Vector{Int}, Tuple{Vararg{Int}}}, spatialprops::Vector = spatialproperties(img))
     if length(p) != ndims(img)
         error("The permutation must have length equal to the number of dimensions")
     end
@@ -299,29 +213,23 @@ function permutedims(img::ImageMeta, p::Union{Vector{Int}, Tuple{Vararg{Int}}}, 
     ret
 end
 
-permutedims{S<:AbstractString}(img::AbstractArray, pstr::Union{Vector{S}, Tuple{Vararg{S}}}, spatialprops::Vector = spatialproperties(img)) = error("not supported, please switch to ImagesAxes")
-permutedims(img::AxisArray, pstr::Union{Vector{S},Tuple{Vararg{S}}}) = permutedims(img, permutation(axisnames, pstr))
-permutedims(img::ImageMeta, pstr::Union{Vector{S},Tuple{Vararg{S}}}, spatialprops::Vector = String[]) = permutedims(img, permutation(axisnames, pstr), spatialprops)
+Base.permutedims(img::AxisArray, pstr::Union{Vector{Symbol},Tuple{Vararg{Symbol}}}) = permutedims(img, permutation(axisnames, pstr))
+Base.permutedims(img::ImageMeta, pstr::Union{Vector{Symbol},Tuple{Vararg{Symbol}}}, spatialprops::Vector = String[]) = permutedims(img, permutation(axisnames, pstr), spatialprops)
 
-# Define the transpose of a 2d image
-ctranspose{T}(img::ImageMeta{T,2}) = permutedims(img, (2,1))
+Base.ctranspose{T}(img::ImageMeta{T,2}) = permutedims(img, (2,1))
 
-# Default list of spatial properties possessed by an image
-spatialproperties(img::ImageMeta) = @get img "spatialproperties" String[]
+"""
+    spatialproperties(img)
+
+Return a vector of strings, containing the names of properties that
+have been declared "spatial" and hence should be permuted when calling
+`permutedims`.  Declare such properties like this:
+
+    img["spatialproperties"] = ["spacedirections"]
+"""
+ImagesCore.spatialproperties(img::ImageMeta) = @get img "spatialproperties" ["spacedirections"]
 
 #### Low-level utilities ####
-function permutation(to, from)
-    n = length(to)
-    nf = length(from)
-    d = Dict([(from[i], i) for i = 1:length(from)])
-    ind = Array(Int, max(n, nf))
-    for i = 1:n
-        ind[i] = get(d, to[i], 0)
-    end
-    ind[n+1:nf] = n+1:nf
-    ind
-end
-
 function showdictlines(io::IO, dict::Dict, suppress::Set)
     for (k, v) in dict
         if k == "suppress"
@@ -351,5 +259,7 @@ function kwargs2dict(kwargs)
     end
     return d
 end
+
+include("deprecated.jl")
 
 end # module
