@@ -142,7 +142,13 @@ end
 
 ImagesAxes.timedim(img::ImageMetaAxis) = timedim(data(img))
 
-ImagesCore.pixelspacing(img::ImageMetaAxis) = pixelspacing(data(img))
+# This *function* is not deprecated, but there's a check inside for deprecated keys
+function ImagesCore.pixelspacing(img::ImageMeta)
+    if haskey(img, "pixelspacing")
+        Base.depwarn("setting the pixelspacing property no longer works; please use ImagesAxes instead", :pixelspacing)
+    end
+    pixelspacing(data(img))
+end
 
 """
     spacedirections(img)

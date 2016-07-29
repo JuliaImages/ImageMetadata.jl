@@ -56,6 +56,7 @@ import Base: haskey, get
 
 import ImagesCore.isdirect
 @deprecate isdirect(img::IndirectArray) false
+@deprecate isdirect(img::ImageMeta) isdirect(data(img))
 
 # function pixelspacing{T,N}(img::ImageMeta{T,N})
 #     depwarn("pixelspacing(::ImageMeta) is deprecated, please switch to ImagesAxes", :pixelspacing)

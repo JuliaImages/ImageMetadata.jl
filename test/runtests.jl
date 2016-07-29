@@ -127,4 +127,6 @@ end
     assert_timedim_last(img)
 end
 
+include("deprecated.jl")
+
 nothing
