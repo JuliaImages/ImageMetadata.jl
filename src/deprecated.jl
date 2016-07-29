@@ -2,8 +2,12 @@ using IndirectArrays
 
 #### Types and constructors ####
 
-# Probably move these to Images.jl:
+# Perhaps move these to Images.jl?
 Base.@deprecate_binding Image ImageMeta
+Base.@deprecate_binding AbstractImage ImageMeta
+Base.@deprecate_binding AbstractImageDirect ImageMeta
+typealias ImageMetaIndirect{T,N,A<:IndirectArray} ImageMeta{T,N,A}
+Base.@deprecate_binding AbstractImageIndexed ImageMetaIndirect
 
 @deprecate ImageCmap(data, cmap) IndirectArray(data, cmap)
 @deprecate ImageCmap(data, cmap, properties) ImageMeta(IndirectArray(data, cmap), properties)
@@ -13,7 +17,10 @@ Base.@deprecate_binding Image ImageMeta
 Base.setindex!(img::AxisArray, X, dimname::AbstractString, ind::Base.ViewIndex, nameind...) = error("for named dimensions, please switch to ImagesAxes")
 Base.setindex!(img::AbstractArray, X, dimname::AbstractString, ind::Base.ViewIndex, nameind...) = error("for named dimensions, please switch to ImagesAxes")
 
-Base.view(img::AbstractImage, dimname::AbstractString, ind::Base.ViewIndex, args...) = error("for named dimensions, please switch to ImagesAxes")
+Base.view(img::ImageMeta, dimname::AbstractString, ind::Base.ViewIndex, args...) = error("for named dimensions, please switch to ImagesAxes")
+
+@deprecate copyproperties(img::AbstractArray, data::AbstractArray) data
+@deprecate shareproperties(img::AbstractArray, data::AbstractArray) data
 
 #### Properties ####
 
@@ -47,6 +54,7 @@ import Base: haskey, get
 
 ### traits ###
 
+import ImagesCore.isdirect
 @deprecate isdirect(img::IndirectArray) false
 
 # function pixelspacing{T,N}(img::ImageMeta{T,N})
@@ -66,8 +74,10 @@ import Base: haskey, get
 
 # This is mostly for user information---in code it's generally better
 # to use spatialorder, colordim, and timedim directly
+import ImagesAxes.storageorder
 @deprecate storageorder(A::AxisArray) axisnames(A)
 
 #### Permutations over dimensions ####
 
-@deprecate permutedims{S<:AbstractString}(img::AxisArray, pstr::Union{Vector{S},Tuple{Vararg{S}}}, spatialprops::Vector) permutedims(img, pstr)
+import Base.permutedims
+@deprecate permutedims{S<:AbstractString}(img::AxisArray, pstr::Union{Vector{S},Tuple{S,Vararg{S}}}, spatialprops::Vector) permutedims(img, pstr)

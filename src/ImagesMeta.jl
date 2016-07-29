@@ -61,7 +61,8 @@ end
     val
 end
 
-# Adding or changing a property via setindex!
+Base.getindex(img::ImageMeta, propname::AbstractString) = img.properties[propname]
+
 Base.setindex!(img::ImageMeta, X, propname::AbstractString) = setindex!(img.properties, X, propname)
 
 Base.copy(img::ImageMeta) = ImageMeta(copy(img.data), deepcopy(img.properties))
@@ -81,14 +82,10 @@ Base.similar(img::ImageMeta, T::Type, shape::Base.DimsOrInds) = ImageMeta(simila
 
 # Create a new "Image" (could be just an Array) copying the properties
 # but replacing the data
-copyproperties(img::AbstractArray, data::AbstractArray) = data
-
 copyproperties(img::ImageMeta, data::AbstractArray) =
     ImageMeta(data, deepcopy(img.properties))
 
 # Provide new data but reuse (share) the properties
-shareproperties(img::AbstractArray, data::AbstractArray) = data
-
 shareproperties(img::ImageMeta, data::AbstractArray) = ImageMeta(data, img.properties)
 
 # Delete a property!
@@ -117,7 +114,7 @@ end
 Base.show(io::IO, img::ImageMeta) = showim(io, img)
 Base.show(io::IO, ::MIME"text/plain", img::ImageMeta) = showim(io, img)
 
-data(img::ImageMeta) = img.data
+ImagesCore.data(img::ImageMeta) = img.data   # fixme when deprecation is removed from ImagesCore
 
 #### Properties ####
 
@@ -171,7 +168,7 @@ ImagesCore.coords_spatial(img::ImageMetaAxis) = coords_spatial(data(img))
 
 ImagesCore.spatialorder(img::ImageMetaAxis) = spatialorder(data(img))
 
-ImagesCore.nimages(img::ImageMetaAxis) = nimages(data(img))
+ImagesAxes.nimages(img::ImageMetaAxis) = nimages(data(img))
 
 ImagesCore.size_spatial(img::ImageMetaAxis) = size_spatial(data(img))
 
@@ -241,23 +238,24 @@ function showdictlines(io::IO, dict::Dict, suppress::Set)
         end
         if !in(k, suppress)
             print(io, "\n    ", k, ": ")
-            printdictval(io, v)
+            print(IOContext(io, compact=true), v)
         else
             print(io, "\n    ", k, ": <suppressed>")
         end
     end
 end
+showdictlines(io::IO, dict::Dict, prop::String) = showdictlines(io, dict, Set([prop]))
 
-printdictval(io::IO, v) = print(io, v)
-function printdictval(io::IO, v::Vector)
-    for i = 1:length(v)
-        print(io, " ", v[i])
-    end
-end
+# printdictval(io::IO, v) = print(io, v)
+# function printdictval(io::IO, v::Vector)
+#     for i = 1:length(v)
+#         print(io, " ", v[i])
+#     end
+# end
 
 # converts keyword argument to a dictionary
 function kwargs2dict(kwargs)
-    d = Dict{ASCIIString,Any}()
+    d = Dict{String,Any}()
     for (k, v) in kwargs
         d[string(k)] = v
     end
