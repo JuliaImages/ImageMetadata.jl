@@ -15,7 +15,8 @@ export
     getindexim,
     properties,
     shareproperties,
-    spatialproperties
+    spatialproperties,
+    viewim
 
 #### types and constructors ####
 
@@ -29,6 +30,11 @@ Construct an image with `ImageMeta(A, props)` (for a properties dictionary
 type ImageMeta{T,N,A<:AbstractArray} <: AbstractArray{T,N}
     data::A
     properties::Dict{String,Any}
+
+    function ImageMeta(data::AbstractArray, properties::Dict)
+        check_deprecated_properties(data, properties)
+        new(data, properties)
+    end
 end
 ImageMeta{T,N}(data::AbstractArray{T,N}, props::Dict) = ImageMeta{T,N,typeof(data)}(data,props)
 ImageMeta(data::AbstractArray; kwargs...) = ImageMeta(data, kwargs2dict(kwargs))
@@ -61,7 +67,8 @@ end
     val
 end
 
-# Adding or changing a property via setindex!
+Base.getindex(img::ImageMeta, propname::AbstractString) = img.properties[propname]
+
 Base.setindex!(img::ImageMeta, X, propname::AbstractString) = setindex!(img.properties, X, propname)
 
 Base.copy(img::ImageMeta) = ImageMeta(copy(img.data), deepcopy(img.properties))
@@ -81,14 +88,10 @@ Base.similar(img::ImageMeta, T::Type, shape::Base.DimsOrInds) = ImageMeta(simila
 
 # Create a new "Image" (could be just an Array) copying the properties
 # but replacing the data
-copyproperties(img::AbstractArray, data::AbstractArray) = data
-
 copyproperties(img::ImageMeta, data::AbstractArray) =
     ImageMeta(data, deepcopy(img.properties))
 
 # Provide new data but reuse (share) the properties
-shareproperties(img::AbstractArray, data::AbstractArray) = data
-
 shareproperties(img::ImageMeta, data::AbstractArray) = ImageMeta(data, img.properties)
 
 # Delete a property!
@@ -102,8 +105,6 @@ viewim(img::ImageMeta, I...) = shareproperties(img, view(img.data, I...))
 # Iteration
 # Defer to the array object in case it has special iteration defined
 Base.start(img::ImageMeta) = start(data(img))
-Base.next{T,N}(img::ImageMeta{T,N}, s::Tuple{Bool,Base.IteratorsMD.CartesianIndex{N}}) = next(data(img), s)
-Base.done{T,N}(img::ImageMeta{T,N}, s::Tuple{Bool,Base.IteratorsMD.CartesianIndex{N}}) = done(data(img), s)
 Base.next(img::ImageMeta, s) = next(data(img), s)
 Base.done(img::ImageMeta, s) = done(data(img), s)
 
@@ -117,7 +118,7 @@ end
 Base.show(io::IO, img::ImageMeta) = showim(io, img)
 Base.show(io::IO, ::MIME"text/plain", img::ImageMeta) = showim(io, img)
 
-data(img::ImageMeta) = img.data
+ImagesCore.data(img::ImageMeta) = img.data   # fixme when deprecation is removed from ImagesCore
 
 #### Properties ####
 
@@ -145,7 +146,7 @@ end
 
 ImagesAxes.timedim(img::ImageMetaAxis) = timedim(data(img))
 
-ImagesCore.pixelspacing(img::ImageMetaAxis) = pixelspacing(data(img))
+ImagesCore.pixelspacing(img::ImageMeta) = pixelspacing(data(img))
 
 """
     spacedirections(img)
@@ -171,7 +172,7 @@ ImagesCore.coords_spatial(img::ImageMetaAxis) = coords_spatial(data(img))
 
 ImagesCore.spatialorder(img::ImageMetaAxis) = spatialorder(data(img))
 
-ImagesCore.nimages(img::ImageMetaAxis) = nimages(data(img))
+ImagesAxes.nimages(img::ImageMetaAxis) = nimages(data(img))
 
 ImagesCore.size_spatial(img::ImageMetaAxis) = size_spatial(data(img))
 
@@ -188,7 +189,7 @@ When permuting the dimensions of an ImageMeta, you can optionally
 specify that certain properties are spatial and they will also be
 permuted. `spatialprops` defaults to `spatialproperties(img)`.
 """
-function Base.permutedims(img::ImageMeta, p::Union{Vector{Int}, Tuple{Int,Vararg{Int}}}, spatialprops::Vector = spatialproperties(img))
+function Base.permutedims(img::ImageMeta, p::Union{Vector{Int}, Tuple{Int,Vararg{Int}}}, spatialprops = spatialproperties(img))
     if length(p) != ndims(img)
         error("The permutation must have length equal to the number of dimensions")
     end
@@ -197,12 +198,8 @@ function Base.permutedims(img::ImageMeta, p::Union{Vector{Int}, Tuple{Int,Vararg
     end
     ip = invperm(p)
     ret = copyproperties(img, permutedims(img.data, p))
-    sd = timedim(img)
-    if sd > 0
-        p = setdiff(p, sd)
-    end
     if !isempty(spatialprops)
-        ip = sortperm(p)
+        ip = sortperm([p...])
         for prop in spatialprops
             a = img.properties[prop]
             if isa(a, AbstractVector)
@@ -241,23 +238,24 @@ function showdictlines(io::IO, dict::Dict, suppress::Set)
         end
         if !in(k, suppress)
             print(io, "\n    ", k, ": ")
-            printdictval(io, v)
+            print(IOContext(io, compact=true), v)
         else
             print(io, "\n    ", k, ": <suppressed>")
         end
     end
 end
+showdictlines(io::IO, dict::Dict, prop::String) = showdictlines(io, dict, Set([prop]))
 
-printdictval(io::IO, v) = print(io, v)
-function printdictval(io::IO, v::Vector)
-    for i = 1:length(v)
-        print(io, " ", v[i])
-    end
-end
+# printdictval(io::IO, v) = print(io, v)
+# function printdictval(io::IO, v::Vector)
+#     for i = 1:length(v)
+#         print(io, " ", v[i])
+#     end
+# end
 
 # converts keyword argument to a dictionary
 function kwargs2dict(kwargs)
-    d = Dict{ASCIIString,Any}()
+    d = Dict{String,Any}()
     for (k, v) in kwargs
         d[string(k)] = v
     end
