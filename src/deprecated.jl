@@ -47,6 +47,38 @@ function properties{C<:Colorant}(A::AbstractArray{C})
          "spatialorder" => spatialorder(A))
 end
 
+function check_deprecated_properties(data, properties)
+    for key in ("colorspace", "colordim")
+        if haskey(properties, key)
+            error("\"$key\" property is ignored, now color is encoded only by the element type.\nSee `colorview` to represent a numeric array as a color array.")
+        end
+    end
+    if haskey(properties, "limits")
+        local z, o
+        try
+            z, o = zero(eltype(data)), one(eltype(data))
+        catch
+            z, o = 0, 1
+        end
+        error("\"limits\" property is ignored, limits are always ($z,$o)")
+    end
+    if haskey(properties, "timedim")
+        error("\"timedim\" property is ignored, please switch to ImagesAxes and use A = AxisArray(data, ..., :time, ...)")
+    end
+    if haskey(properties, "pixelspacing")
+        error("\"pixelspacing\" property is ignored, please switch to ImagesAxes and use A = AxisArray(data, ..., Axis{:y}(start:[step:]stop), ...)")
+    end
+    if haskey(properties, "spatialorder")
+        so = properties["spatialorder"]
+        try
+            so = map(s->":"*s, so)
+        catch
+        end
+        error("\"spatialorder\" property is ignored, please switch to ImagesAxes and use A = AxisArray(data, $(join(so, ", ")))")
+    end
+    nothing
+end
+
 import Base: haskey, get
 @deprecate haskey(a::AbstractArray, k::AbstractString) false
 

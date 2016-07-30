@@ -6,13 +6,14 @@ if testing_units
     using SIUnits, SIUnits.ShortUnits
 end
 
+msg_contains(pass, msg) = contains(pass.value.msg, msg) || error(pass.value.msg, " does not contain \"", msg, "\"")
+
 @testset "Deprecated" begin
     a = rand(3,3)
     @inferred(Image(a))
     B = rand(convert(UInt16, 1):convert(UInt16, 20), 3, 5)
     cmap = reinterpret(RGB, repmat(reinterpret(U8, round(UInt8, linspace(12, 255, 20)))', 3, 1))
-    img = ImageCmap(copy(B), cmap, Dict{String, Any}("pixelspacing"=>[2.0, 3.0],
-                                                     "spatialorder"=>ImagesCore.yx))
+    img = ImageCmap(copy(B), cmap)
     imgd = copy(img)
 
     @testset "indexing" begin
@@ -38,24 +39,22 @@ end
     end
 
     @testset "deprecated properties" begin
-        f, io = mktemp()
-        OLDSTDERR = STDERR
-        redirect_stderr(io)
-        @test pixelspacing(img) == (1,1)
-        redirect_stderr(OLDSTDERR)
-        close(io)
-        str = readstring(f)
-        @show str
-        @test contains(str, "pixelspacing property")
-        if testing_units
-            imgd["pixelspacing"] = [2.0mm, 3.0mm]
-            @test imgd["pixelspacing"] == [2.0mm,3.0mm]
+        for Im in (Image, ImageMeta)
+            result = @test_throws ErrorException Im(rand(3,5,5), colorspace="RGB")
+            msg_contains(result, "color is encoded")
+            Im(rand(3,5,5), clrspace="RGB")  # ensure it's specific for that name
+            result = @test_throws ErrorException Im(rand(3,5,5), colordim=1)
+            msg_contains(result, "color is encoded")
+            result = @test_throws ErrorException Im(rand(3,5), limits=(0.25,0.75))
+            msg_contains(result, "limits are always")
+            result = @test_throws ErrorException Im(rand(3,5), pixelspacing=[2,1])
+            msg_contains(result, "please switch to ImagesAxes")
+            result = @test_throws ErrorException Im(rand(3,5,12), timedim=3)
+            msg_contains(result, "please switch to ImagesAxes")
+            result = @test_throws ErrorException Im(rand(3,5), spatialorder=["boo", "rah"])
+            msg_contains(result, "data, :boo, :rah")
         end
-        A = AxisArray(rand(3,5), Axis{:x}(1mm:2mm:5mm), Axis{:y}(1mm:1mm:5mm))
-        imgax = Image(A, pixelspacing=[0,0])
-        @test pixelspacing(imgax) == (2mm,1mm)
     end
-
 end
 
 nothing

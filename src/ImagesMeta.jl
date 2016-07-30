@@ -29,6 +29,11 @@ Construct an image with `ImageMeta(A, props)` (for a properties dictionary
 type ImageMeta{T,N,A<:AbstractArray} <: AbstractArray{T,N}
     data::A
     properties::Dict{String,Any}
+
+    function ImageMeta(data::AbstractArray, properties::Dict)
+        check_deprecated_properties(data, properties)
+        new(data, properties)
+    end
 end
 ImageMeta{T,N}(data::AbstractArray{T,N}, props::Dict) = ImageMeta{T,N,typeof(data)}(data,props)
 ImageMeta(data::AbstractArray; kwargs...) = ImageMeta(data, kwargs2dict(kwargs))
@@ -142,13 +147,7 @@ end
 
 ImagesAxes.timedim(img::ImageMetaAxis) = timedim(data(img))
 
-# This *function* is not deprecated, but there's a check inside for deprecated keys
-function ImagesCore.pixelspacing(img::ImageMeta)
-    if haskey(img, "pixelspacing")
-        Base.depwarn("setting the pixelspacing property no longer works; please use ImagesAxes instead", :pixelspacing)
-    end
-    pixelspacing(data(img))
-end
+ImagesCore.pixelspacing(img::ImageMeta) = pixelspacing(data(img))
 
 """
     spacedirections(img)

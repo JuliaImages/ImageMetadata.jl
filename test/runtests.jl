@@ -12,7 +12,7 @@ using Base.Test
               reshape(1:15, 3, 5),
               rand(RGB{U8}, 3, 5),
               rand(Gray{Float32}, 3, 5))
-        img = ImageMeta(A; prop1 = 1, prop2 = [1,2,3])
+        img = ImageMeta(A, prop1=1, prop2=[1,2,3]) # TODO: add @inferred (see julia #17719)
         @test eltype(img) == eltype(A)
         @test ndims(img) == 2
         @test size(img) == (3,5)
@@ -41,13 +41,16 @@ using Base.Test
         img["prop1"] = -1
         @test img["prop1"] == -1
     end
-    a = zeros(3)
-    sizehint!(a, 10)
-    @test_throws BoundsError a[5]
-    @inbounds a[5] = 1.234
-    @inbounds val = a[5]
-    @test val == 1.234
-    a = zeros(3,5)
+    # Test bounds-checking removal by @inbounds
+    if Base.JLOptions().check_bounds != 1
+        a = zeros(3)
+        sizehint!(a, 10)  # make sure we don't cause a segfault
+        @test_throws BoundsError a[5]
+        @inbounds a[5] = 1.234
+        @inbounds val = a[5]
+        @test val == 1.234
+        a = zeros(3,5)
+    end
 end
 
 @testset "copy/similar" begin
