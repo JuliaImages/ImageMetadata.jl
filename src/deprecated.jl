@@ -2,15 +2,17 @@ using IndirectArrays
 
 #### Types and constructors ####
 
-# Perhaps move these to Images.jl?
 Base.@deprecate_binding Image ImageMeta
 Base.@deprecate_binding AbstractImage ImageMeta
 Base.@deprecate_binding AbstractImageDirect ImageMeta
 typealias ImageMetaIndirect{T,N,A<:IndirectArray} ImageMeta{T,N,A}
 Base.@deprecate_binding AbstractImageIndexed ImageMetaIndirect
 
-@deprecate ImageCmap(data, cmap) IndirectArray(data, cmap)
+@deprecate ImageCmap(data, cmap; kwargs...)  ImageMeta(IndirectArray(data, cmap); kwargs...)
 @deprecate ImageCmap(data, cmap, properties) ImageMeta(IndirectArray(data, cmap), properties)
+
+Base.@deprecate_binding subim viewim
+Base.@deprecate_binding sliceim viewim
 
 #### Indexing ####
 

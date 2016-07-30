@@ -15,7 +15,8 @@ export
     getindexim,
     properties,
     shareproperties,
-    spatialproperties
+    spatialproperties,
+    viewim
 
 #### types and constructors ####
 

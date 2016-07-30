@@ -71,9 +71,11 @@ end
     @test !haskey(img, "prop3")
 end
 
-@testset "copy/shareproperties" begin
+@testset "copy/shareproperties/viewim" begin
     img = ImageMeta(rand(3,5); prop1 = 1, prop2 = [1,2,3])
     @test !isempty(properties(img))
+    sl = viewim(img, 1:2, 1:2)
+    @test sl["prop1"] == 1
     img2 = copyproperties(img, reshape(1:15, 5, 3))
     @test size(img2) == (5,3)
     img2["prop1"] = -1
@@ -82,6 +84,7 @@ end
     @test size(img2) == (5,3)
     img2["prop1"] = -1
     @test img["prop1"] == -1
+    @test sl["prop1"] == -1
     imgb = ImageMeta(rand(RGB{U8}, 2, 2), propa = "hello", propb = [1,2])
     copy!(img, imgb, "propa", "propb")
     @test img["propa"] == "hello"
