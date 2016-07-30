@@ -105,8 +105,6 @@ viewim(img::ImageMeta, I...) = shareproperties(img, view(img.data, I...))
 # Iteration
 # Defer to the array object in case it has special iteration defined
 Base.start(img::ImageMeta) = start(data(img))
-Base.next{T,N}(img::ImageMeta{T,N}, s::Tuple{Bool,Base.IteratorsMD.CartesianIndex{N}}) = next(data(img), s)
-Base.done{T,N}(img::ImageMeta{T,N}, s::Tuple{Bool,Base.IteratorsMD.CartesianIndex{N}}) = done(data(img), s)
 Base.next(img::ImageMeta, s) = next(data(img), s)
 Base.done(img::ImageMeta, s) = done(data(img), s)
 
@@ -191,7 +189,7 @@ When permuting the dimensions of an ImageMeta, you can optionally
 specify that certain properties are spatial and they will also be
 permuted. `spatialprops` defaults to `spatialproperties(img)`.
 """
-function Base.permutedims(img::ImageMeta, p::Union{Vector{Int}, Tuple{Int,Vararg{Int}}}, spatialprops::Vector = spatialproperties(img))
+function Base.permutedims(img::ImageMeta, p::Union{Vector{Int}, Tuple{Int,Vararg{Int}}}, spatialprops = spatialproperties(img))
     if length(p) != ndims(img)
         error("The permutation must have length equal to the number of dimensions")
     end
@@ -200,12 +198,8 @@ function Base.permutedims(img::ImageMeta, p::Union{Vector{Int}, Tuple{Int,Vararg
     end
     ip = invperm(p)
     ret = copyproperties(img, permutedims(img.data, p))
-    sd = timedim(img)
-    if sd > 0
-        p = setdiff(p, sd)
-    end
     if !isempty(spatialprops)
-        ip = sortperm(p)
+        ip = sortperm([p...])
         for prop in spatialprops
             a = img.properties[prop]
             if isa(a, AbstractVector)

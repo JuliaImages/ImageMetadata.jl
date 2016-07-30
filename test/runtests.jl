@@ -14,6 +14,7 @@ using Base.Test
               rand(Gray{Float32}, 3, 5))
         img = ImageMeta(A, prop1=1, prop2=[1,2,3]) # TODO: add @inferred (see julia #17719)
         @test eltype(img) == eltype(A)
+        @test Base.linearindexing(img) == Base.linearindexing(A)
         @test ndims(img) == 2
         @test size(img) == (3,5)
         @test data(img) === A
@@ -22,6 +23,9 @@ using Base.Test
         end
         for k = 1:15
             @test img[k] === A[k]
+        end
+        for I in eachindex(img)
+            @test img[I] === A[I]
         end
         k = 0
         for a in img
@@ -69,13 +73,23 @@ end
     @test img2.data != img.data
     img2["prop3"] = 7
     @test !haskey(img, "prop3")
+    img2 = similar(img, RGB{Float16}, (Base.OneTo(5),))
+    @test img2["prop1"] == 1
+    @test img2["prop2"] == [1,2,3]
+    @test eltype(img2) == RGB{Float16}
+    @test size(img2) == (5,)
+    @test img2.data != img.data
+    img2["prop3"] = 7
+    @test !haskey(img, "prop3")
 end
 
 @testset "copy/shareproperties/viewim" begin
     img = ImageMeta(rand(3,5); prop1 = 1, prop2 = [1,2,3])
     @test !isempty(properties(img))
-    sl = viewim(img, 1:2, 1:2)
-    @test sl["prop1"] == 1
+    v = viewim(img, 1:2, 1:2)
+    c = getindexim(img, 1:2, 1:2)
+    @test v["prop1"] == 1
+    @test c["prop1"] == 1
     img2 = copyproperties(img, reshape(1:15, 5, 3))
     @test size(img2) == (5,3)
     img2["prop1"] = -1
@@ -84,7 +98,8 @@ end
     @test size(img2) == (5,3)
     img2["prop1"] = -1
     @test img["prop1"] == -1
-    @test sl["prop1"] == -1
+    @test v["prop1"] == -1
+    @test c["prop1"] == 1
     imgb = ImageMeta(rand(RGB{U8}, 2, 2), propa = "hello", propb = [1,2])
     copy!(img, imgb, "propa", "propb")
     @test img["propa"] == "hello"
@@ -111,6 +126,10 @@ end
         @test !contains(str, "hide")
         @test contains(str, "<suppressed>")
         @test !contains(str, "suppress:")
+        io = IOBuffer()
+        show(io, MIME("text/plain"), img)
+        str2 = takebuf_string(io)
+        @test str == str2
     end
 end
 
@@ -131,6 +150,16 @@ end
     @test @inferred(size_spatial(img)) == (3,5)
     @test @inferred(indices_spatial(img)) == (Base.OneTo(3), Base.OneTo(5))
     assert_timedim_last(img)
+end
+
+@testset "spatialprops" begin
+    img = ImageMeta(rand(3,5),
+                    spatialproperties=Set(["vector","matrix"]),
+                    vector=[1,2],
+                    matrix=[1 3; 2 4])
+    imgp = permutedims(img, (2,1))
+    @test imgp["vector"] == [2,1]
+    @test imgp["matrix"] == [4 2; 3 1]
 end
 
 include("deprecated.jl")
