@@ -1,4 +1,4 @@
-The ImagesMeta.jl package is licensed under the MIT "Expat" License:
+The ImageMetadata.jl package is licensed under the MIT "Expat" License:
 
 > Copyright (c) 2016: Tim Holy.
 > 

@@ -1,9 +1,9 @@
-module ImagesMeta
+module ImageMetadata
 
 # The order here is designed to avoid an ambiguity warning in convert,
-# see the top of ImagesAxes
-using ImagesAxes
-using ImagesCore, Colors
+# see the top of ImageAxes
+using ImageAxes
+using ImageCore, Colors
 
 export
     # types
@@ -83,8 +83,9 @@ function Base.copy!(imgdest::ImageMeta, imgsrc::ImageMeta, prop1::AbstractString
 end
 
 # similar
-Base.similar(img::ImageMeta, T::Type, shape::Dims) = ImageMeta(similar(img.data, T, shape), deepcopy(img.properties))
-Base.similar(img::ImageMeta, T::Type, shape::Base.DimsOrInds) = ImageMeta(similar(img.data, T, shape), deepcopy(img.properties))
+Base.similar{T}(img::ImageMeta, ::Type{T}, shape::Dims) = ImageMeta(similar(img.data, T, shape), deepcopy(img.properties))
+Base.similar{T}(img::ImageMeta, ::Type{T}, shape::Base.NeedsShaping) = ImageMeta(similar(img.data, T, Base.to_shape(shape)), deepcopy(img.properties))
+Base.similar{T}(img::ImageMeta, ::Type{T}, shape::Base.DimsOrInds) = ImageMeta(similar(img.data, T, shape), deepcopy(img.properties))
 
 # Create a new "Image" (could be just an Array) copying the properties
 # but replacing the data
@@ -118,7 +119,7 @@ end
 Base.show(io::IO, img::ImageMeta) = showim(io, img)
 Base.show(io::IO, ::MIME"text/plain", img::ImageMeta) = showim(io, img)
 
-ImagesCore.data(img::ImageMeta) = img.data   # fixme when deprecation is removed from ImagesCore
+ImageCore.data(img::ImageMeta) = img.data   # fixme when deprecation is removed from ImageCore
 
 #### Properties ####
 
@@ -144,14 +145,14 @@ macro get(img, k, default)
     end
 end
 
-ImagesAxes.timedim(img::ImageMetaAxis) = timedim(data(img))
+ImageAxes.timedim(img::ImageMetaAxis) = timedim(data(img))
 
-ImagesCore.pixelspacing(img::ImageMeta) = pixelspacing(data(img))
+ImageCore.pixelspacing(img::ImageMeta) = pixelspacing(data(img))
 
 """
     spacedirections(img)
 
-Using ImagesMeta, you can set this property manually. For example, you
+Using ImageMetadata, you can set this property manually. For example, you
 could indicate that a photograph was taken with the camera tilted
 30-degree relative to vertical using
 
@@ -163,22 +164,22 @@ If not specified, it will be computed from `pixelspacing(img)`, placing the
 spacing along the "diagonal".  If desired, you can set this property in terms of
 physical units, and each axis can have distinct units.
 """
-ImagesCore.spacedirections(img::ImageMeta) = @get img "spacedirections" ImagesCore._spacedirections(img)
-ImagesCore.spacedirections(img::ImageMetaAxis) = @get img "spacedirections" spacedirections(data(img))
+ImageCore.spacedirections(img::ImageMeta) = @get img "spacedirections" ImageCore._spacedirections(img)
+ImageCore.spacedirections(img::ImageMetaAxis) = @get img "spacedirections" spacedirections(data(img))
 
-ImagesCore.sdims(img::ImageMetaAxis) = sdims(data(img))
+ImageCore.sdims(img::ImageMetaAxis) = sdims(data(img))
 
-ImagesCore.coords_spatial(img::ImageMetaAxis) = coords_spatial(data(img))
+ImageCore.coords_spatial(img::ImageMetaAxis) = coords_spatial(data(img))
 
-ImagesCore.spatialorder(img::ImageMetaAxis) = spatialorder(data(img))
+ImageCore.spatialorder(img::ImageMetaAxis) = spatialorder(data(img))
 
-ImagesAxes.nimages(img::ImageMetaAxis) = nimages(data(img))
+ImageAxes.nimages(img::ImageMetaAxis) = nimages(data(img))
 
-ImagesCore.size_spatial(img::ImageMetaAxis) = size_spatial(data(img))
+ImageCore.size_spatial(img::ImageMetaAxis) = size_spatial(data(img))
 
-ImagesCore.indices_spatial(img::ImageMetaAxis) = indices_spatial(data(img))
+ImageCore.indices_spatial(img::ImageMetaAxis) = indices_spatial(data(img))
 
-ImagesCore.assert_timedim_last(img::ImageMetaAxis) = assert_timedim_last(data(img))
+ImageCore.assert_timedim_last(img::ImageMetaAxis) = assert_timedim_last(data(img))
 
 #### Permutations over dimensions ####
 
@@ -228,7 +229,7 @@ have been declared "spatial" and hence should be permuted when calling
 
     img["spatialproperties"] = ["spacedirections"]
 """
-ImagesCore.spatialproperties(img::ImageMeta) = @get img "spatialproperties" ["spacedirections"]
+ImageCore.spatialproperties(img::ImageMeta) = @get img "spatialproperties" ["spacedirections"]
 
 #### Low-level utilities ####
 function showdictlines(io::IO, dict::Dict, suppress::Set)

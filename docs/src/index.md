@@ -1,6 +1,6 @@
-# ImagesMeta.jl
+# ImageMetadata.jl
 
-ImagesMeta allows you to add metadata to images: for example, the date
+ImageMetadata allows you to add metadata to images: for example, the date
 and time at which it was collected, identifiers for the location or
 subject, etc. This metadata is stored as a dictionary, and the
 `ImageMeta` type combines properties of arrays and `Dict`.
@@ -10,7 +10,7 @@ subject, etc. This metadata is stored as a dictionary, and the
 You typically create an `ImageMeta` using keyword arguments:
 
 ```julia
-julia> using Colors, ImagesMeta
+julia> using Colors, ImageMetadata
 
 julia> img = ImageMeta(fill(RGB(1,0,0), 3, 2), date=Date(2016, 7, 31), time="high noon")
 RGB ImageMeta with:
@@ -22,7 +22,7 @@ RGB ImageMeta with:
 
 ```@meta
 DocTestSetup = quote
-    using Colors, ImagesMeta
+    using Colors, ImageMetadata
     img = ImageMeta(fill(RGB(1,0,0), 3, 2), date=Date(2016, 7, 31), time="high noon")
 end
 ```
@@ -130,7 +130,7 @@ You can declare that certain properties are coupled to spatial axes
 using `"spatialproperties"`:
 
 ```julia
-julia> using ImagesMeta
+julia> using ImageMetadata
 
 julia> A = reshape(1:15, 3, 5)
 3×5 Base.ReshapedArray{Int64,2,UnitRange{Int64},Tuple{}}:

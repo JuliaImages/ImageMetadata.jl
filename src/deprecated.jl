@@ -16,10 +16,10 @@ Base.@deprecate_binding sliceim viewim
 
 #### Indexing ####
 
-Base.setindex!(img::AxisArray, X, dimname::AbstractString, ind::Base.ViewIndex, nameind...) = error("for named dimensions, please switch to ImagesAxes")
-Base.setindex!(img::AbstractArray, X, dimname::AbstractString, ind::Base.ViewIndex, nameind...) = error("for named dimensions, please switch to ImagesAxes")
+Base.setindex!(img::AxisArray, X, dimname::AbstractString, ind::Base.ViewIndex, nameind...) = error("for named dimensions, please switch to ImageAxes")
+Base.setindex!(img::AbstractArray, X, dimname::AbstractString, ind::Base.ViewIndex, nameind...) = error("for named dimensions, please switch to ImageAxes")
 
-Base.view(img::ImageMeta, dimname::AbstractString, ind::Base.ViewIndex, args...) = error("for named dimensions, please switch to ImagesAxes")
+Base.view(img::ImageMeta, dimname::AbstractString, ind::Base.ViewIndex, args...) = error("for named dimensions, please switch to ImageAxes")
 
 @deprecate copyproperties(img::AbstractArray, data::AbstractArray) data
 @deprecate shareproperties(img::AbstractArray, data::AbstractArray) data
@@ -65,10 +65,10 @@ function check_deprecated_properties(data, properties)
         error("\"limits\" property is ignored, limits are always ($z,$o)")
     end
     if haskey(properties, "timedim")
-        error("\"timedim\" property is ignored, please switch to ImagesAxes and use A = AxisArray(data, ..., :time, ...)")
+        error("\"timedim\" property is ignored, please switch to ImageAxes and use A = AxisArray(data, ..., :time, ...)")
     end
     if haskey(properties, "pixelspacing")
-        error("\"pixelspacing\" property is ignored, please switch to ImagesAxes and use A = AxisArray(data, ..., Axis{:y}(start:[step:]stop), ...)")
+        error("\"pixelspacing\" property is ignored, please switch to ImageAxes and use A = AxisArray(data, ..., Axis{:y}(start:[step:]stop), ...)")
     end
     if haskey(properties, "spatialorder")
         so = properties["spatialorder"]
@@ -76,7 +76,7 @@ function check_deprecated_properties(data, properties)
             so = map(s->":"*s, so)
         catch
         end
-        error("\"spatialorder\" property is ignored, please switch to ImagesAxes and use A = AxisArray(data, $(join(so, ", ")))")
+        error("\"spatialorder\" property is ignored, please switch to ImageAxes and use A = AxisArray(data, $(join(so, ", ")))")
     end
     nothing
 end
@@ -88,12 +88,12 @@ import Base: haskey, get
 
 ### traits ###
 
-import ImagesCore.isdirect
+import ImageCore.isdirect
 @deprecate isdirect(img::IndirectArray) false
 @deprecate isdirect(img::ImageMeta) isdirect(data(img))
 
 # function pixelspacing{T,N}(img::ImageMeta{T,N})
-#     depwarn("pixelspacing(::ImageMeta) is deprecated, please switch to ImagesAxes", :pixelspacing)
+#     depwarn("pixelspacing(::ImageMeta) is deprecated, please switch to ImageAxes", :pixelspacing)
 #     _pixelspacing(img)
 # end
 # _pixelspacing{T}(img::ImageMeta{T}) = @get img "pixelspacing" __pixelspacing(img)
@@ -109,7 +109,7 @@ import ImagesCore.isdirect
 
 # This is mostly for user information---in code it's generally better
 # to use spatialorder, colordim, and timedim directly
-import ImagesAxes.storageorder
+import ImageAxes.storageorder
 @deprecate storageorder(A::AxisArray) axisnames(A)
 
 #### Permutations over dimensions ####

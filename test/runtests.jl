@@ -1,7 +1,7 @@
-using Colors, ColorVectorSpace, SimpleTraits, ImagesAxes, ImagesMeta
+using Colors, ColorVectorSpace, SimpleTraits, ImageAxes, ImageMetadata
 using Base.Test
 
-@test isempty(detect_ambiguities(ImagesMeta,ImagesAxes,ImagesCore,IndirectArrays,Base,Core))
+@test isempty(detect_ambiguities(ImageMetadata,ImageAxes,ImageCore,IndirectArrays,Base,Core))
 
 @traitimpl TimeAxis{Axis{:time}}
 
