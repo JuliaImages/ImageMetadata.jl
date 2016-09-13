@@ -1,6 +1,6 @@
-using Documenter, ImagesMeta
+using Documenter, ImageMetadata
 
-makedocs(modules = [ImagesMeta])
+makedocs(modules = [ImageMetadata])
 
 deploydocs(deps   = Deps.pip("mkdocs", "python-markdown-math"),
-           repo   = "github.com/JuliaImages/ImagesMeta.jl.git")
+           repo   = "github.com/JuliaImages/ImageMetadata.jl.git")

@@ -1,4 +1,4 @@
-using Colors, ColorVectorSpace, SimpleTraits, ImagesAxes, ImagesMeta
+using Colors, ColorVectorSpace, SimpleTraits, ImageAxes, ImageMetadata
 using Base.Test
 
 testing_units = Int == Int64
@@ -53,9 +53,9 @@ msg_contains(pass, msg) = contains(pass.value.msg, msg) || error(pass.value.msg,
             result = @test_throws ErrorException Im(rand(3,5), limits=(0.25,0.75))
             msg_contains(result, "limits are always")
             result = @test_throws ErrorException Im(rand(3,5), pixelspacing=[2,1])
-            msg_contains(result, "please switch to ImagesAxes")
+            msg_contains(result, "please switch to ImageAxes")
             result = @test_throws ErrorException Im(rand(3,5,12), timedim=3)
-            msg_contains(result, "please switch to ImagesAxes")
+            msg_contains(result, "please switch to ImageAxes")
             result = @test_throws ErrorException Im(rand(3,5), spatialorder=["boo", "rah"])
             msg_contains(result, "data, :boo, :rah")
         end
