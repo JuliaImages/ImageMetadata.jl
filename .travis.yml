@@ -9,9 +9,17 @@ julia:
 notifications:
   email: false
 # uncomment the following lines to override the default test script
-#script:
-#  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-#  - julia -e 'Pkg.clone(pwd()); Pkg.build("ImageMetadata"); Pkg.test("ImageMetadata"; coverage=true)'
+script:
+  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+  # For the time being, clone unregistered packages
+  - julia -e 'Pkg.clone("https://github.com/JuliaImages/ImageCore.jl")'
+  - julia -e 'Pkg.clone("https://github.com/ajkeller34/Unitful.jl"); Pkg.build("Unitful")'
+  - julia -e 'Pkg.clone("https://github.com/mbauman/AxisArrays.jl")'
+  - julia -e 'Pkg.clone("https://github.com/mbauman/RangeArrays.jl")'
+  - julia -e 'Pkg.clone("https://github.com/mauro3/SimpleTraits.jl")'
+  - julia -e 'Pkg.clone("https://github.com/JuliaImages/ImageAxes.jl")'
+  # Back to the regular script
+  - julia -e 'Pkg.clone(pwd()); Pkg.build("ImageMetadata"); Pkg.test("ImageMetadata"; coverage=true)'
 after_success:
   # push coverage results to Coveralls
   - julia -e 'cd(Pkg.dir("ImageMetadata")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
