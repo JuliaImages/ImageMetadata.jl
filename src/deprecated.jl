@@ -18,13 +18,43 @@ Base.@deprecate_binding sliceim viewim
 
 #### Indexing ####
 
-Base.setindex!(img::AxisArray, X, dimname::AbstractString, ind::Base.ViewIndex, nameind...) = error("for named dimensions, please switch to ImageAxes")
+function getaxes(dimname::AbstractString, ind, nameind...)
+    ax1 = Axis{Symbol(dimname)}(ind)
+    axs = []
+    for i = 1:2:length(nameind)
+        push!(axs, Axis{Symbol(nameind[i])}(nameind[i+1]))
+    end
+    (ax1, axs...)
+end
+
+throw_axisarray(dimname, ind) = error("for named dimensions, please index as img[Axis{:$dimname}($ind), ...]")
+throw_axisarray(dimname, ind, fsym) = error("for named dimensions, please use $fsym(img, [Axis{:$dimname}($ind), ...)")
+
+function Base.getindex(img::AxisArray, dimname::AbstractString, ind::Base.ViewIndex, nameind...)
+    axs = getaxes(dimname, ind, nameind...)
+    Base.depwarn("indexing with strings is deprecated, use img[$(axs...)] instead", :setindex!)
+    img[axs...]
+end
+
+function Base.setindex!(img::AxisArray, X, dimname::AbstractString, ind::Base.ViewIndex, nameind...)
+    axs = getaxes(dimname, ind, nameind...)
+    Base.depwarn("indexing with strings is deprecated, use img[$(axs...)] instead", :setindex!)
+    setindex!(img, X, axs...)
+end
 Base.setindex!(img::AbstractArray, X, dimname::AbstractString, ind::Base.ViewIndex, nameind...) = error("for named dimensions, please switch to ImageAxes")
 
 Base.view(img::ImageMeta, dimname::AbstractString, ind::Base.ViewIndex, args...) = error("for named dimensions, please switch to ImageAxes")
+function Base.view(img::Union{AxisArray, ImageMetaAxis}, dimname::AbstractString, ind::Base.ViewIndex, args...)
+    axs = getaxes(dimname, ind, args...)
+    Base.depwarn("indexing with strings is deprecated, use view(img, $(axs...)) instead", :view!)
+    view(img, axs...)
+end
 
 @deprecate copyproperties(img::AbstractArray, data::AbstractArray) data
 @deprecate shareproperties(img::AbstractArray, data::AbstractArray) data
+
+@deprecate getindexim(img::AbstractArray, I...) img[I...]
+@deprecate viewim(img::AbstractArray, I...) view(img, I...)
 
 #### Properties ####
 
