@@ -214,13 +214,16 @@ function Base.permutedims(img::ImageMeta, p::Union{Vector{Int}, Tuple{Int,Vararg
     if issorted(p) && length(p) == ndims(img)
         return copy(img)
     end
-    ip = invperm(p)
     ret = copyproperties(img, permutedims(img.data, p))
+    cs = coords_spatial(img)
+    permutedims_props!(ret, sortperm([p...][[coords_spatial(img)...]]), spatialprops)
+end
+
+function permutedims_props!(ret::ImageMeta, ip, spatialprops=spatialproperties(ret))
     if !isempty(spatialprops)
-        ip = sortperm([p...][coords_spatial(img)])
         for prop in spatialprops
-            if haskey(img, prop)
-                a = img.properties[prop]
+            if haskey(ret, prop)
+                a = ret.properties[prop]
                 if isa(a, AbstractVector)
                     ret.properties[prop] = a[ip]
                 elseif isa(a, Tuple)
