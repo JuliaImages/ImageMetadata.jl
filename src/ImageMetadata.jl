@@ -5,7 +5,7 @@ module ImageMetadata
 # The order here is designed to avoid an ambiguity warning in convert,
 # see the top of ImageAxes
 using ImageAxes
-using ImageCore, Colors
+using ImageCore, Colors, FixedPointNumbers
 
 import Base: +, .+, -, .-, *, .*, /, ./, .^, .<, .>, .==
 import Base: fft, ifft
@@ -79,7 +79,10 @@ Base.setindex!(img::ImageMeta, X, propname::AbstractString) = setindex!(img.prop
 
 Base.copy(img::ImageMeta) = ImageMeta(copy(img.data), deepcopy(img.properties))
 
+Base.convert(::Type{ImageMeta}, A::ImageMeta) = A
 Base.convert(::Type{ImageMeta}, A::AbstractArray) = ImageMeta(A)
+Base.convert{T}(::Type{ImageMeta{T}}, A::ImageMeta{T}) = A
+Base.convert{T}(::Type{ImageMeta{T}}, A::ImageMeta) = shareproperties(A, convert(Array{T}, A.data))
 Base.convert{T}(::Type{ImageMeta{T}}, A::AbstractArray) = ImageMeta(convert(Array{T}, A))
 
 # copy properties
@@ -131,6 +134,14 @@ Base.show(io::IO, ::MIME"text/plain", img::ImageMeta) = showim(io, img)
 Base.reinterpret{T}(::Type{T}, img::ImageMetaArray) = shareproperties(img, reinterpret(T, img.data))
 
 ImageCore.data(img::ImageMeta) = img.data   # fixme when deprecation is removed from ImageCore
+function ImageCore.permuteddimsview(A::ImageMeta, perm)
+    ip = sortperm([perm...][coords_spatial(A)])  # the inverse spatial permutation
+    permutedims_props!(copyproperties(A, permuteddimsview(A.data, perm)), ip)
+end
+ImageCore.channelview(A::ImageMeta) = shareproperties(A, channelview(A.data))
+ImageCore.colorview{C<:Colorant}(::Type{C}, A::ImageMeta) = shareproperties(A, colorview(C, A.data))
+ImageCore.rawview{T<:Real}(A::ImageMeta{T}) = shareproperties(A, rawview(A.data))
+ImageCore.ufixedview{T<:FixedPoint,S<:Unsigned}(::Type{T}, A::ImageMeta{S}) = shareproperties(A, ufixedview(T, A.data))
 
 # AxisArrays functions
 AxisArrays.axes(img::ImageMetaAxis) = axes(img.data)
