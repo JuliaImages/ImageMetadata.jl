@@ -114,11 +114,6 @@ import ImageCore.isdirect
 import ImageAxes.storageorder
 @deprecate storageorder(A::AxisArray) axisnames(A)
 
-#### Permutations over dimensions ####
-
-import Base.permutedims
-@deprecate permutedims{S<:AbstractString}(img::AxisArray, pstr::Union{Vector{S},Tuple{S,Vararg{S}}}, spatialprops::Vector) permutedims(img, pstr)
-
 
 # Elementwise functions
 @deprecate sqrt(img::ImageMeta) shareproperties(img, sqrt.(data(img)))

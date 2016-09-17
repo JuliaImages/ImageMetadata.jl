@@ -217,23 +217,32 @@ function Base.permutedims(img::ImageMeta, p::Union{Vector{Int}, Tuple{Int,Vararg
     ip = invperm(p)
     ret = copyproperties(img, permutedims(img.data, p))
     if !isempty(spatialprops)
-        ip = sortperm([p...])
+        ip = sortperm([p...][coords_spatial(img)])
         for prop in spatialprops
-            a = img.properties[prop]
-            if isa(a, AbstractVector)
-                ret.properties[prop] = a[ip]
-            elseif isa(a, AbstractMatrix) && size(a,1) == size(a,2)
-                ret.properties[prop] = a[ip,ip]
-            else
-                error("Do not know how to handle property ", prop)
+            if haskey(img, prop)
+                a = img.properties[prop]
+                if isa(a, AbstractVector)
+                    ret.properties[prop] = a[ip]
+                elseif isa(a, Tuple)
+                    ret.properties[prop] = a[ip]
+                elseif isa(a, AbstractMatrix) && size(a,1) == size(a,2)
+                    ret.properties[prop] = a[ip,ip]
+                else
+                    error("Do not know how to handle property ", prop)
+                end
             end
         end
     end
     ret
 end
 
-Base.permutedims(img::AxisArray, pstr::Union{Vector{Symbol},Tuple{Symbol,Vararg{Symbol}}}) = permutedims(img, permutation(axisnames, pstr))
-Base.permutedims(img::ImageMeta, pstr::Union{Vector{Symbol},Tuple{Symbol,Vararg{Symbol}}}, spatialprops::Vector = String[]) = permutedims(img, permutation(axisnames, pstr), spatialprops)
+Base.permutedims(img::AxisArray, pstr::Union{Vector{Symbol},Tuple{Symbol,Vararg{Symbol}}}) = permutedims(img, ImageCore.permutation(axisnames(img), pstr))
+function Base.permutedims(img::AxisArray, pstr::Union{Vector{Symbol},Tuple{Symbol,Vararg{Symbol}}}, spatialprops::Vector)
+    isempty(spatialprops) || throw(ArgumentError("AxisArray cannot have non-empty spatialprops, got $spatialprops"))
+    permutedims(img, ImageCore.permutation(axisnames(img), pstr))
+end
+
+Base.permutedims(img::ImageMetaAxis, pstr::Union{Vector{Symbol},Tuple{Symbol,Vararg{Symbol}}}, spatialprops::Vector = String[]) = permutedims(img, ImageCore.permutation(axisnames(img), pstr), spatialprops)
 
 Base.ctranspose{T}(img::ImageMeta{T,2}) = permutedims(img, (2,1))
 
