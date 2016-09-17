@@ -1,9 +1,14 @@
+__precompile__(false)  # because of ImageAxes
+
 module ImageMetadata
 
 # The order here is designed to avoid an ambiguity warning in convert,
 # see the top of ImageAxes
 using ImageAxes
 using ImageCore, Colors
+
+import Base: +, .+, -, .-, *, .*, /, ./, .^, .<, .>, .==
+import Base: fft, ifft
 
 export
     # types
@@ -263,6 +268,7 @@ function kwargs2dict(kwargs)
     return d
 end
 
+include("operators.jl")
 include("deprecated.jl")
 
 end # module

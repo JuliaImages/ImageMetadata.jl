@@ -1,5 +1,7 @@
 using IndirectArrays
 
+import Base: sqrt, atan2, hypot, real, imag, abs
+
 #### Types and constructors ####
 
 Base.@deprecate_binding Image ImageMeta
@@ -116,3 +118,12 @@ import ImageAxes.storageorder
 
 import Base.permutedims
 @deprecate permutedims{S<:AbstractString}(img::AxisArray, pstr::Union{Vector{S},Tuple{S,Vararg{S}}}, spatialprops::Vector) permutedims(img, pstr)
+
+
+# Elementwise functions
+@deprecate sqrt(img::ImageMeta) shareproperties(img, sqrt.(data(img)))
+@deprecate atan2(img1::ImageMeta, img2::ImageMeta) shareproperties(img1, atan2.(data(img1),data(img2)))
+@deprecate hypot(img1::ImageMeta, img2::ImageMeta) shareproperties(img1, hypot.(data(img1),data(img2)))
+@deprecate real(img::ImageMeta) shareproperties(img,real.(data(img)))
+@deprecate imag(img::ImageMeta) shareproperties(img,imag.(data(img)))
+@deprecate abs(img::ImageMeta) shareproperties(img,abs.(data(img)))
