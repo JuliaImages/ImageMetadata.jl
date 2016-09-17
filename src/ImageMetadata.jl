@@ -44,6 +44,7 @@ end
 ImageMeta{T,N}(data::AbstractArray{T,N}, props::Dict) = ImageMeta{T,N,typeof(data)}(data,props)
 ImageMeta(data::AbstractArray; kwargs...) = ImageMeta(data, kwargs2dict(kwargs))
 
+typealias ImageMetaArray{T,N,A<:Array}    ImageMeta{T,N,A}
 typealias ImageMetaAxis{T,N,A<:AxisArray} ImageMeta{T,N,A}
 
 Base.size(A::ImageMeta) = size(A.data)
@@ -77,6 +78,9 @@ Base.getindex(img::ImageMeta, propname::AbstractString) = img.properties[propnam
 Base.setindex!(img::ImageMeta, X, propname::AbstractString) = setindex!(img.properties, X, propname)
 
 Base.copy(img::ImageMeta) = ImageMeta(copy(img.data), deepcopy(img.properties))
+
+Base.convert(::Type{ImageMeta}, A::AbstractArray) = ImageMeta(A)
+Base.convert{T}(::Type{ImageMeta{T}}, A::AbstractArray) = ImageMeta(convert(Array{T}, A))
 
 # copy properties
 function Base.copy!(imgdest::ImageMeta, imgsrc::ImageMeta, prop1::AbstractString, props::AbstractString...)
@@ -124,7 +128,15 @@ end
 Base.show(io::IO, img::ImageMeta) = showim(io, img)
 Base.show(io::IO, ::MIME"text/plain", img::ImageMeta) = showim(io, img)
 
+Base.reinterpret{T}(::Type{T}, img::ImageMetaArray) = shareproperties(img, reinterpret(T, img.data))
+
 ImageCore.data(img::ImageMeta) = img.data   # fixme when deprecation is removed from ImageCore
+
+# AxisArrays functions
+AxisArrays.axes(img::ImageMetaAxis) = axes(img.data)
+AxisArrays.axisdim(img::ImageMetaAxis, ax) = axisdim(img.data, ax)
+AxisArrays.axisnames(img::ImageMetaAxis) = axisnames(img.data)
+AxisArrays.axisvalues(img::ImageMetaAxis) = axisvalues(img.data)
 
 #### Properties ####
 
