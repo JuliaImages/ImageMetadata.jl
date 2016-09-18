@@ -8,7 +8,7 @@ using ImageAxes
 using ImageCore, Colors, FixedPointNumbers
 
 import Base: +, .+, -, .-, *, .*, /, ./, .^, .<, .>, .==
-import Base: fft, ifft
+import Base: fft, ifft, permutedims
 
 export
     # types
@@ -218,17 +218,7 @@ When permuting the dimensions of an ImageMeta, you can optionally
 specify that certain properties are spatial and they will also be
 permuted. `spatialprops` defaults to `spatialproperties(img)`.
 """
-function Base.permutedims(img::ImageMeta, p::Union{Vector{Int}, Tuple{Int,Vararg{Int}}}, spatialprops = spatialproperties(img))
-    if length(p) != ndims(img)
-        error("The permutation must have length equal to the number of dimensions")
-    end
-    if issorted(p) && length(p) == ndims(img)
-        return copy(img)
-    end
-    ret = copyproperties(img, permutedims(img.data, p))
-    cs = coords_spatial(img)
-    permutedims_props!(ret, sortperm([p...][[coords_spatial(img)...]]), spatialprops)
-end
+permutedims
 
 function permutedims_props!(ret::ImageMeta, ip, spatialprops=spatialproperties(ret))
     if !isempty(spatialprops)
@@ -250,15 +240,17 @@ function permutedims_props!(ret::ImageMeta, ip, spatialprops=spatialproperties(r
     ret
 end
 
-Base.permutedims(img::AxisArray, pstr::Union{Vector{Symbol},Tuple{Symbol,Vararg{Symbol}}}) = permutedims(img, ImageCore.permutation(axisnames(img), pstr))
-function Base.permutedims(img::AxisArray, pstr::Union{Vector{Symbol},Tuple{Symbol,Vararg{Symbol}}}, spatialprops::Vector)
-    isempty(spatialprops) || throw(ArgumentError("AxisArray cannot have non-empty spatialprops, got $spatialprops"))
-    permutedims(img, ImageCore.permutation(axisnames(img), pstr))
+function permutedims(img::ImageMetaAxis, perm)
+    p = AxisArrays.permutation(perm, axisnames(img.data))
+    ip = sortperm(p[coords_spatial(img)])
+    permutedims_props!(copyproperties(img, permutedims(img.data, p)), ip)
+end
+function permutedims(img::ImageMeta, perm)
+    ip = sortperm([perm...][[coords_spatial(img)...]])
+    permutedims_props!(copyproperties(img, permutedims(img.data, perm)), ip)
 end
 
-Base.permutedims(img::ImageMetaAxis, pstr::Union{Vector{Symbol},Tuple{Symbol,Vararg{Symbol}}}, spatialprops::Vector = String[]) = permutedims(img, ImageCore.permutation(axisnames(img), pstr), spatialprops)
-
-Base.ctranspose{T}(img::ImageMeta{T,2}) = permutedims(img, (2,1))
+Base.ctranspose{T<:Real}(img::ImageMeta{T,2}) = permutedims(img, (2,1))
 
 """
     spatialproperties(img)

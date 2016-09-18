@@ -158,6 +158,7 @@ end
                     vector=[1,2],
                     matrix=[1 3; 2 4])
     imgp = permutedims(img, (2,1))
+    @test imgp.data == img.data'
     @test imgp["vector"] == [2,1]
     @test imgp["matrix"] == [4 2; 3 1]
 end
