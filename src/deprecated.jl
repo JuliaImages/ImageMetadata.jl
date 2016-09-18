@@ -1,5 +1,6 @@
 using IndirectArrays
 
+using Base: depwarn
 import Base: sqrt, atan2, hypot, real, imag, abs
 
 #### Types and constructors ####
@@ -74,17 +75,7 @@ instead, structuring your code like this:
 """, :properties)
 function properties(A::AbstractArray)
     properties_depwarn()
-    Dict("colorspace" => colorspace(A),
-         "colordim" => colordim(A),
-         "timedim" => timedim(A),
-         "pixelspacing" => pixelspacing(A),
-         "spatialorder" => spatialorder(A))
-end
-function properties{C<:Colorant}(A::AbstractArray{C})
-    properties_depwarn()
-    Dict("timedim" => timedim(A),
-         "pixelspacing" => pixelspacing(A),
-         "spatialorder" => spatialorder(A))
+    Dict{String,Any}()
 end
 
 function check_deprecated_properties(data, properties)

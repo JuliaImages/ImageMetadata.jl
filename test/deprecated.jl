@@ -55,6 +55,7 @@ msg_contains(pass, msg) = contains(pass.value.msg, msg) || error(pass.value.msg,
     end
 
     @testset "deprecated properties" begin
+        @test isempty(properties(rand(3,3)))
         for Im in (Image, ImageMeta)
             result = @test_throws ErrorException Im(rand(3,5,5), colorspace="RGB")
             msg_contains(result, "color is encoded")
