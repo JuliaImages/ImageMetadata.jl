@@ -174,6 +174,7 @@ macro get(img, k, default)
 end
 
 ImageAxes.timedim(img::ImageMetaAxis) = timedim(data(img))
+ImageCore.colordim(img::ImageMetaAxis) = colordim(data(img))
 
 ImageCore.pixelspacing(img::ImageMeta) = pixelspacing(data(img))
 
@@ -192,8 +193,7 @@ If not specified, it will be computed from `pixelspacing(img)`, placing the
 spacing along the "diagonal".  If desired, you can set this property in terms of
 physical units, and each axis can have distinct units.
 """
-ImageCore.spacedirections(img::ImageMeta) = @get img "spacedirections" ImageCore._spacedirections(img)
-ImageCore.spacedirections(img::ImageMetaAxis) = @get img "spacedirections" spacedirections(data(img))
+ImageCore.spacedirections(img::ImageMeta) = @get img "spacedirections" spacedirections(data(img))
 
 ImageCore.sdims(img::ImageMetaAxis) = sdims(data(img))
 

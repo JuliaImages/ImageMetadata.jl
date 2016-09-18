@@ -149,7 +149,7 @@ end
                               Axis{:y}(1:5),
                               Axis{:time}(0.1:0.1:0.8)))
     @test @inferred(timedim(img)) == 3
-    @test @inferred(pixelspacing(img)) === (1,1,0.1)
+    @test @inferred(pixelspacing(img)) === (1,1)
     @test spacedirections(img) === ((1,0),(0,1))
     img["spacedirections"] = "broken"
     @test spacedirections(img) == "broken"

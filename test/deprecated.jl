@@ -50,7 +50,7 @@ msg_contains(pass, msg) = contains(pass.value.msg, msg) || error(pass.value.msg,
         @test colorspace(B) == "Gray"
         @test colorspace(img) == "RGB"
         @test colorspace(imgd) == "RGB"
-        @test ncolorelem(img) == ncolorelem(imgd) == 3
+        @test ncolorelem(img) == ncolorelem(imgd) == 1
         @test nimages(img) == nimages(imgd) == 1
     end
 
