@@ -13,41 +13,47 @@ Base.@deprecate_binding AbstractImageIndexed ImageMetaIndirect
 @deprecate ImageCmap(data, cmap; kwargs...)  ImageMeta(IndirectArray(data, cmap); kwargs...)
 @deprecate ImageCmap(data, cmap, properties) ImageMeta(IndirectArray(data, cmap), properties)
 
-Base.@deprecate_binding subim viewim
 Base.@deprecate_binding sliceim viewim
+
+function subim(img::Union{AxisArray,ImageMeta}, args...)
+    newargs = _subim_indexes(args)
+    newargstr = join(map(string, newargs), ", ")
+    Base.depwarn("subim is deprecated, call viewim(img, $newargstr) instead", :subim)
+    viewim(img, newargs...)
+end
+export subim
+
+# This is not type-stable, but since it's used for a deprecation this is fine
+function _subim_indexes(args)
+    n = length(args)
+    newargs = Array{Any}(n)
+    haveextended = false
+    for i = n:-1:1
+        a = args[i]
+        if isa(a, Real)
+            newargs[i] = haveextended ? (a:a) : a
+        else
+            newargs[i] = a
+            haveextended |= isa(a, AbstractArray)
+        end
+    end
+    newargs
+end
 
 #### Indexing ####
 
-function getaxes(dimname::AbstractString, ind, nameind...)
-    ax1 = Axis{Symbol(dimname)}(ind)
-    axs = []
-    for i = 1:2:length(nameind)
-        push!(axs, Axis{Symbol(nameind[i])}(nameind[i+1]))
-    end
-    (ax1, axs...)
-end
+using ImageAxes: getaxes
 
-throw_axisarray(dimname, ind) = error("for named dimensions, please index as img[Axis{:$dimname}($ind), ...]")
-throw_axisarray(dimname, ind, fsym) = error("for named dimensions, please use $fsym(img, [Axis{:$dimname}($ind), ...)")
-
-function Base.getindex(img::AxisArray, dimname::AbstractString, ind::Base.ViewIndex, nameind...)
-    axs = getaxes(dimname, ind, nameind...)
-    Base.depwarn("indexing with strings is deprecated, use img[$(axs...)] instead", :setindex!)
-    img[axs...]
-end
-
-function Base.setindex!(img::AxisArray, X, dimname::AbstractString, ind::Base.ViewIndex, nameind...)
-    axs = getaxes(dimname, ind, nameind...)
-    Base.depwarn("indexing with strings is deprecated, use img[$(axs...)] instead", :setindex!)
-    setindex!(img, X, axs...)
-end
-Base.setindex!(img::AbstractArray, X, dimname::AbstractString, ind::Base.ViewIndex, nameind...) = error("for named dimensions, please switch to ImageAxes")
-
-Base.view(img::ImageMeta, dimname::AbstractString, ind::Base.ViewIndex, args...) = error("for named dimensions, please switch to ImageAxes")
-function Base.view(img::Union{AxisArray, ImageMetaAxis}, dimname::AbstractString, ind::Base.ViewIndex, args...)
+function Base.view(img::ImageMetaAxis, dimname::AbstractString, ind::Base.ViewIndex, args...)
     axs = getaxes(dimname, ind, args...)
     Base.depwarn("indexing with strings is deprecated, use view(img, $(axs...)) instead", :view!)
-    view(img, axs...)
+    view(img.data, axs...)
+end
+
+function viewim(img::ImageMetaAxis, dimname::AbstractString, ind::Base.ViewIndex, args...)
+    axs = getaxes(dimname, ind, args...)
+    Base.depwarn("indexing with strings is deprecated, use view(img, $(axs...)) instead", :view!)
+    shareproperties(img, view(img.data, axs...))
 end
 
 @deprecate copyproperties(img::AbstractArray, data::AbstractArray) data

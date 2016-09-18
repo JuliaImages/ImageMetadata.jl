@@ -110,6 +110,16 @@ end
     delete!(img, "propb")
     @test  haskey(img, "propa")
     @test !haskey(img, "propb")
+
+    img = ImageMeta(AxisArray(rand(3,5,8),
+                              Axis{:x}(1:3),
+                              Axis{:y}(1:5),
+                              Axis{:time}(0.1:0.1:0.8));
+                    prop1 = 1, prop2 = [1,2,3])
+    v = viewim(img, Axis{:time}(0.25..0.5))
+    c = getindexim(img, Axis{:time}(0.25..0.5))
+    @test v["prop1"] == 1
+    @test c["prop1"] == 1
 end
 
 @testset "show" begin
