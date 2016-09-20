@@ -1,4 +1,4 @@
-__precompile__(false)  # because of ImageAxes
+__precompile__()
 
 module ImageMetadata
 
