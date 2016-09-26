@@ -52,6 +52,11 @@ Base.size(A::ImageMeta) = size(A.data)
 Base.linearindexing(A::ImageMeta) = Base.linearindexing(A.data)
 
 # getindex and setindex!
+@inline function Base.getindex{T}(img::ImageMeta{T,1}, i::Int)
+    @boundscheck checkbounds(img.data, i)
+    @inbounds ret = img.data[i]
+    ret
+end
 @inline function Base.getindex(img::ImageMeta, i::Int)
     @boundscheck checkbounds(img.data, i)
     @inbounds ret = img.data[i]
@@ -61,6 +66,11 @@ end
     @boundscheck checkbounds(img.data, I...)
     @inbounds ret = img.data[I...]
     ret
+end
+@inline function Base.setindex!{T}(img::ImageMeta{T,1}, val, i::Int)
+    @boundscheck checkbounds(img.data, i)
+    @inbounds img.data[i] = val
+    val
 end
 @inline function Base.setindex!(img::ImageMeta, val, i::Int)
     @boundscheck checkbounds(img.data, i)

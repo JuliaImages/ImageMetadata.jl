@@ -6,6 +6,40 @@ using Base.Test
 @traitimpl TimeAxis{Axis{:time}}
 
 @testset "indexing" begin
+    # 1d images
+    for A = (rand(3),
+             view(rand(6), 1:2:5),
+             view(rand(6), [1,2,4]),
+             rand(RGB{U8}, 3),
+             rand(Gray{U8}, 3))
+        img = ImageMeta(A, prop1=1, prop2=[1,2,3])
+        @test eltype(img) == eltype(A)
+        @test Base.linearindexing(img) == Base.linearindexing(A)
+        @test ndims(img) == 1
+        @test size(img) == (3,)
+        @test data(img) === A
+        for i = 1:3
+            @test img[i] === A[i]
+        end
+        for I in eachindex(img)
+            @test img[I] === A[I]
+        end
+        k = 0
+        for a in img
+            @test a == A[k+=1]
+        end
+        img[2] = zero(eltype(img))
+        @test A[2] == zero(eltype(A))
+        img[3] = one(eltype(img))
+        @test A[3] == one(eltype(A))
+        @test_throws BoundsError img[0]
+        @test_throws BoundsError img[4]
+        @test img["prop1"] == 1
+        @test img["prop2"] == [1,2,3]
+        img["prop1"] = -1
+        @test img["prop1"] == -1
+    end
+
     for A in (rand(3,5),
               view(rand(4,6), 1:3, 1:5),
               view(rand(4,5), [1,2,4], :),
