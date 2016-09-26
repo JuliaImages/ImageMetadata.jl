@@ -252,7 +252,7 @@ end
 
 function permutedims(img::ImageMetaAxis, perm)
     p = AxisArrays.permutation(perm, axisnames(img.data))
-    ip = sortperm(p[coords_spatial(img)])
+    ip = sortperm([p...][[coords_spatial(img)...]])
     permutedims_props!(copyproperties(img, permutedims(img.data, p)), ip)
 end
 function permutedims(img::ImageMeta, perm)

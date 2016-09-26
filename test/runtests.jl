@@ -3,8 +3,6 @@ using Base.Test
 
 @test isempty(detect_ambiguities(ImageMetadata,ImageAxes,ImageCore,IndirectArrays,Base,Core))
 
-@traitimpl TimeAxis{Axis{:time}}
-
 @testset "indexing" begin
     # 1d images
     for A = (rand(3),
@@ -80,7 +78,7 @@ using Base.Test
         @test img["prop1"] == -1
     end
     # Test bounds-checking removal by @inbounds
-    if Base.JLOptions().check_bounds != 1
+    if Base.JLOptions().check_bounds != 1 && Base.JLOptions().can_inline == 1
         a = zeros(3)
         sizehint!(a, 10)  # make sure we don't cause a segfault
         @test_throws BoundsError a[5]
@@ -89,6 +87,18 @@ using Base.Test
         @test val == 1.234
         a = zeros(3,5)
     end
+end
+
+@testset "convert" begin
+    A = rand(3,5)
+    M = convert(ImageMeta, A)
+    @test isa(M, ImageMeta)
+    @test convert(ImageMeta, M) === M
+    @test convert(ImageMeta{Float64}, M) === M
+    @test eltype(convert(ImageMeta{Gray{Float64}}, M)) == Gray{Float64}
+    @test eltype(convert(ImageMeta{Gray}, M)) == Gray{Float64}
+    @test convert(ImageMeta{Gray}, M) == M
+    @test convert(ImageMeta{Gray}, A) == A
 end
 
 @testset "copy/similar" begin
@@ -154,6 +164,51 @@ end
     c = getindexim(img, Axis{:time}(0.25..0.5))
     @test v["prop1"] == 1
     @test c["prop1"] == 1
+end
+
+@testset "views" begin
+    for A in (rand(Gray{U8}, 4, 5), rand(RGB{Float32}, 4, 5))
+        t = now()
+        M = ImageMeta(A, date=t)
+        vM = channelview(M)
+        @test isa(vM, ImageMeta)
+        @test vM["date"] == t
+        @test data(vM) == channelview(A)
+        @test isa(rawview(vM), ImageMeta)
+        @test rawview(vM)[1,2] === rawview(channelview(A))[1,2]
+    end
+    for (A,C) in ((rand(UInt8, 4, 5), Gray), (rand(UInt8, 3, 4, 5), RGB))
+        M = ImageMeta(A)
+        vM = ufixedview(M)
+        @test isa(vM, ImageMeta)
+        @test data(vM) == ufixedview(A)
+        cvM = colorview(C, vM)
+        @test isa(cvM, ImageMeta)
+        @test cvM[1,2] === colorview(C, ufixedview(A))[1,2]
+    end
+    A = AxisArray(rand(RGB{U8}, 3, 5), :y, :x)
+    t = now()
+    M = ImageMeta(A, date=t)
+    vM = channelview(M)
+    @test isa(vM, ImageMeta)
+    @test colordim(vM) == 1
+    pvM = permutedims(vM, (2,3,1))
+    @test colordim(pvM) == 3
+    @test pvM["date"] == t
+    pvM["date"] = now()
+    @test M["date"] == t && pvM["date"] != t
+end
+
+@testset "meta-axes" begin
+    A = AxisArray(rand(3,5), :y, :x)
+    M = ImageMeta(A)
+    @test axes(M) == (Axis{:y}(1:3), Axis{:x}(1:5))
+    @test axisdim(M, Axis{:y}) == 1
+    @test axisdim(M, Axis{:x}) == 2
+    @test_throws ErrorException axisdim(M, Axis{:z})
+    @test axisnames(M) == (:y, :x)
+    @test axisvalues(M) == (1:3, 1:5)
+    @test view(M, "y", 2:3) == A[Axis{:y}(2:3)]
 end
 
 @testset "show" begin
