@@ -262,6 +262,7 @@ end
     @test imgp["matrix"] == [4 2; 3 1]
 end
 
+include("operations.jl")
 include("deprecated.jl")
 
 nothing

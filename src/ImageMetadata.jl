@@ -6,6 +6,7 @@ module ImageMetadata
 # see the top of ImageAxes
 using ImageAxes
 using ImageCore, Colors, FixedPointNumbers
+using ColorVectorSpace   # for overriding math operations with Gray/RGB
 
 import Base: +, .+, -, .-, *, .*, /, ./, .^, .<, .>, .==
 import Base: fft, ifft, permutedims
