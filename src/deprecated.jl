@@ -1,5 +1,8 @@
 using IndirectArrays
 
+using Base: depwarn
+import Base: sqrt, atan2, hypot, real, imag, abs
+
 #### Types and constructors ####
 
 Base.@deprecate_binding Image ImageMeta
@@ -11,18 +14,54 @@ Base.@deprecate_binding AbstractImageIndexed ImageMetaIndirect
 @deprecate ImageCmap(data, cmap; kwargs...)  ImageMeta(IndirectArray(data, cmap); kwargs...)
 @deprecate ImageCmap(data, cmap, properties) ImageMeta(IndirectArray(data, cmap), properties)
 
-Base.@deprecate_binding subim viewim
 Base.@deprecate_binding sliceim viewim
+
+function subim(img::Union{AxisArray,ImageMeta}, args...)
+    newargs = _subim_indexes(args)
+    newargstr = join(map(string, newargs), ", ")
+    Base.depwarn("subim is deprecated, call viewim(img, $newargstr) instead", :subim)
+    viewim(img, newargs...)
+end
+export subim
+
+# This is not type-stable, but since it's used for a deprecation this is fine
+function _subim_indexes(args)
+    n = length(args)
+    newargs = Array{Any}(n)
+    haveextended = false
+    for i = n:-1:1
+        a = args[i]
+        if isa(a, Real)
+            newargs[i] = haveextended ? (a:a) : a
+        else
+            newargs[i] = a
+            haveextended |= isa(a, AbstractArray)
+        end
+    end
+    newargs
+end
 
 #### Indexing ####
 
-Base.setindex!(img::AxisArray, X, dimname::AbstractString, ind::Base.ViewIndex, nameind...) = error("for named dimensions, please switch to ImageAxes")
-Base.setindex!(img::AbstractArray, X, dimname::AbstractString, ind::Base.ViewIndex, nameind...) = error("for named dimensions, please switch to ImageAxes")
+using ImageAxes: getaxes
 
-Base.view(img::ImageMeta, dimname::AbstractString, ind::Base.ViewIndex, args...) = error("for named dimensions, please switch to ImageAxes")
+function Base.view(img::ImageMetaAxis, dimname::AbstractString, ind::Base.ViewIndex, args...)
+    axs = getaxes(dimname, ind, args...)
+    Base.depwarn("indexing with strings is deprecated, use view(img, $(axs...)) instead", :view!)
+    view(img.data, axs...)
+end
+
+function viewim(img::ImageMetaAxis, dimname::AbstractString, ind::Base.ViewIndex, args...)
+    axs = getaxes(dimname, ind, args...)
+    Base.depwarn("indexing with strings is deprecated, use view(img, $(axs...)) instead", :view!)
+    shareproperties(img, view(img.data, axs...))
+end
 
 @deprecate copyproperties(img::AbstractArray, data::AbstractArray) data
 @deprecate shareproperties(img::AbstractArray, data::AbstractArray) data
+
+@deprecate getindexim(img::AbstractArray, I...) img[I...]
+@deprecate viewim(img::AbstractArray, I...) view(img, I...)
 
 #### Properties ####
 
@@ -36,17 +75,7 @@ instead, structuring your code like this:
 """, :properties)
 function properties(A::AbstractArray)
     properties_depwarn()
-    Dict("colorspace" => colorspace(A),
-         "colordim" => colordim(A),
-         "timedim" => timedim(A),
-         "pixelspacing" => pixelspacing(A),
-         "spatialorder" => spatialorder(A))
-end
-function properties{C<:Colorant}(A::AbstractArray{C})
-    properties_depwarn()
-    Dict("timedim" => timedim(A),
-         "pixelspacing" => pixelspacing(A),
-         "spatialorder" => spatialorder(A))
+    Dict{String,Any}()
 end
 
 function check_deprecated_properties(data, properties)
@@ -112,7 +141,11 @@ import ImageCore.isdirect
 import ImageAxes.storageorder
 @deprecate storageorder(A::AxisArray) axisnames(A)
 
-#### Permutations over dimensions ####
 
-import Base.permutedims
-@deprecate permutedims{S<:AbstractString}(img::AxisArray, pstr::Union{Vector{S},Tuple{S,Vararg{S}}}, spatialprops::Vector) permutedims(img, pstr)
+# Elementwise functions
+@deprecate sqrt(img::ImageMeta) shareproperties(img, sqrt.(data(img)))
+@deprecate atan2(img1::ImageMeta, img2::ImageMeta) shareproperties(img1, atan2.(data(img1),data(img2)))
+@deprecate hypot(img1::ImageMeta, img2::ImageMeta) shareproperties(img1, hypot.(data(img1),data(img2)))
+@deprecate real(img::ImageMeta) shareproperties(img,real.(data(img)))
+@deprecate imag(img::ImageMeta) shareproperties(img,imag.(data(img)))
+@deprecate abs(img::ImageMeta) shareproperties(img,abs.(data(img)))
