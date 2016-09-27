@@ -158,16 +158,3 @@ julia> maximum(sum(imgp,1))
 
 It's not possible to anticipate all the possible transformations that
 might be necessary, but at least simple swaps are handled automatically.
-
-## Reference
-
-```@docs
-ImageMeta
-data
-properties
-copyproperties
-shareproperties
-getindexim
-viewim
-spatialproperties
-```

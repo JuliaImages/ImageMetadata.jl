@@ -116,20 +116,53 @@ end
 # similar
 Base.similar{T}(img::ImageMeta, ::Type{T}, shape::Dims) = ImageMeta(similar(img.data, T, shape), deepcopy(img.properties))
 
-# Create a new "Image" (could be just an Array) copying the properties
-# but replacing the data
+"""
+    copyproperties(img::ImageMeta, data) -> imgnew
+
+Create a new "image," copying the properties dictionary of `img` but
+using the data of the AbstractArray `data`. Note that changing the
+properties of `imgnew` does not affect the properties of `img`.
+
+See also: shareproperties.
+"""
 copyproperties(img::ImageMeta, data::AbstractArray) =
     ImageMeta(data, deepcopy(img.properties))
 
-# Provide new data but reuse (share) the properties
+"""
+    shareproperties(img::ImageMeta, data) -> imgnew
+
+Create a new "image," reusing the properties dictionary of `img` but
+using the data of the AbstractArray `data`. The two images have
+synchronized properties; modifying one also affects the other.
+
+See also: copyproperties.
+"""
 shareproperties(img::ImageMeta, data::AbstractArray) = ImageMeta(data, img.properties)
 
 # Delete a property!
 Base.delete!(img::ImageMeta, propname::AbstractString) = delete!(img.properties, propname)
 
-# getindexim and viewim return an ImageMeta. The first copies the
-# properties, the second shares them.
+"""
+    getindexim(img::ImageMeta, I...) -> newimg
+
+Like `img[I...]`, except that the returned `newimg` is another
+ImageMeta. Like the data component, the properties dictionary of `img`
+is copied, so `newimg` is not linked in any way to `img`.
+
+See also: viewim.
+"""
 getindexim(img::ImageMeta, I...) = copyproperties(img, img.data[I...])
+
+"""
+    viewim(img::ImageMeta, I...) -> newimg
+
+Like `view(img, I...)`, except that the returned `newimg` is another
+ImageMeta. Like the data component, the properties dictionary of `img`
+is shared with `img`, so that changes to either the data or the
+properties apply to both.
+
+See also: getindexim.
+"""
 viewim(img::ImageMeta, I...) = shareproperties(img, view(img.data, I...))
 
 # Iteration
@@ -150,7 +183,17 @@ Base.show(io::IO, ::MIME"text/plain", img::ImageMeta) = showim(io, img)
 
 Base.reinterpret{T}(::Type{T}, img::ImageMetaArray) = shareproperties(img, reinterpret(T, img.data))
 
+"""
+    data(img::ImageMeta) -> array
+
+Extract the data from `img`, omitting the properties
+dictionary. `array` shares storage with `img`, so changes to one
+affect the other.
+
+See also: properties.
+"""
 ImageCore.data(img::ImageMeta) = img.data   # fixme when deprecation is removed from ImageCore
+
 function ImageCore.permuteddimsview(A::ImageMeta, perm)
     ip = sortperm([perm...][[coords_spatial(A)...]])  # the inverse spatial permutation
     permutedims_props!(copyproperties(A, permuteddimsview(A.data, perm)), ip)
@@ -168,6 +211,14 @@ AxisArrays.axisvalues(img::ImageMetaAxis) = axisvalues(img.data)
 
 #### Properties ####
 
+"""
+    properties(imgmeta) -> props
+
+Extract the properties dictionary `props` for `imgmeta`. `props`
+shares storage with `img`, so changes to one affect the other.
+
+See also: data.
+"""
 properties(img::ImageMeta) = img.properties
 
 Base.haskey(img::ImageMeta, k::AbstractString) = haskey(img.properties, k)
