@@ -313,6 +313,10 @@ function permutedims(img::ImageMeta, perm)
 end
 
 Base.ctranspose{T<:Real}(img::ImageMeta{T,2}) = permutedims(img, (2,1))
+function Base.ctranspose{T<:Real}(img::ImageMeta{T,1})
+    check_empty_spatialproperties(img)
+    copyproperties(img, img.data')
+end
 
 """
     spatialproperties(img)
@@ -324,6 +328,16 @@ have been declared "spatial" and hence should be permuted when calling
     img["spatialproperties"] = ["spacedirections"]
 """
 ImageCore.spatialproperties(img::ImageMeta) = @get img "spatialproperties" ["spacedirections"]
+
+function check_empty_spatialproperties(img)
+    sp = spatialproperties(img)
+    for prop in sp
+        if haskey(img, prop)
+            error("spatialproperties must be empty, have $prop")
+        end
+    end
+    nothing
+end
 
 #### Low-level utilities ####
 function showdictlines(io::IO, dict::Dict, suppress::Set)

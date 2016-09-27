@@ -206,6 +206,7 @@ end
     pvM = permutedims(vM, (2,3,1))
     @test colordim(pvM) == 3
     @test pvM["date"] == t
+    sleep(0.1)
     pvM["date"] = now()
     @test M["date"] == t && pvM["date"] != t
     vM = permuteddimsview(M, (2,1))
@@ -283,6 +284,17 @@ end
         @test img["matrix"] == [1 3; 2 4]
         @test img["tuple"]  == (1,2)
     end
+end
+
+@testset "dimchange" begin
+    M = ImageMeta([1,2,3,4])
+    Mp = M'
+    @test ndims(Mp) == 2 && isa(Mp, ImageMeta)
+
+    M = ImageMeta([1,2,3,4],
+                  spatialproperties=["vector"],
+                  vector=[1])
+    @test_throws ErrorException M'
 end
 
 nothing
