@@ -1,6 +1,6 @@
-julia 0.5-
+julia 0.5
 IndirectArrays
 Colors
-ColorVectorSpace
+ColorVectorSpace 0.1.11
 ImageCore
 ImageAxes
