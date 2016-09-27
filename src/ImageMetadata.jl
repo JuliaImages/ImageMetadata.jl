@@ -9,7 +9,7 @@ using ImageCore, Colors, FixedPointNumbers
 using ColorVectorSpace   # for overriding math operations with Gray/RGB
 
 import Base: +, .+, -, .-, *, .*, /, ./, .^, .<, .>, .==
-import Base: fft, ifft, permutedims
+import Base: permutedims
 
 export
     # types

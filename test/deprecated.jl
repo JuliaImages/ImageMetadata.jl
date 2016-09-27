@@ -60,6 +60,8 @@ msg_contains(pass, msg) = contains(pass.value.msg, msg) || error(pass.value.msg,
             msg_contains(result, "color is encoded")
             result = @test_throws ErrorException Im(rand(3,5), limits=(0.25,0.75))
             msg_contains(result, "limits are always")
+            result = @test_throws ErrorException Im([1:3, 4:7], limits=(0.25,0.75)) # case where zero(eltype) fails
+            msg_contains(result, "limits are always")
             result = @test_throws ErrorException Im(rand(3,5), pixelspacing=[2,1])
             msg_contains(result, "please switch to ImageAxes")
             result = @test_throws ErrorException Im(rand(3,5,12), timedim=3)

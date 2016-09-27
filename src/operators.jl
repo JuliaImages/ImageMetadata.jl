@@ -1,6 +1,5 @@
 using ColorVectorSpace: AbstractGray, TransparentGray, TransparentRGB
 
-(+)(img::ImageMeta) = img
 (-)(img::ImageMeta) = shareproperties(img, -data(img))
 
 for op in (:+, :.+, :-, :.-, :*, :.*)

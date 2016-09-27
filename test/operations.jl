@@ -9,6 +9,7 @@ using ImageMetadata, Colors, ColorVectorSpace, Base.Test
     for A in (rand(Bool, 3, 5), rand(3, 5),
               rand(Gray{U8}, 3, 5), rand(RGB{U8}, 3, 5))
         M = ImageMeta(A)
+        checkmeta(-M, -A)
         checkmeta(M + zero(eltype(M)), M)
         checkmeta(zero(eltype(M)) + M, M)
         checkmeta(M - zero(eltype(M)), M)
@@ -65,5 +66,13 @@ using ImageMetadata, Colors, ColorVectorSpace, Base.Test
         end
     end
 end
+
+M = ImageMeta([1,2,3,4])
+@test minimum(M) == 1
+@test maximum(M) == 4
+Mp = M'
+@test ndims(Mp) == 2
+Ms = squeeze(Mp, 1)
+@test Ms == M
 
 nothing
