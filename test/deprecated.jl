@@ -36,6 +36,7 @@ msg_contains(pass, msg) = contains(pass.value.msg, msg) || error(pass.value.msg,
                                    Axis{:y}(1:5),
                                    Axis{:time}(0.1:0.1:0.8)),
                          dummy=true)
+        @test view(imga, "y", 2:3) == imga.data[Axis{:y}(2:3)]
         v = viewim(imga, "y", 2)
         @test v["dummy"] == true
         v = subim(imga, "y", 2)

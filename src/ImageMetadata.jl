@@ -68,6 +68,9 @@ end
     @inbounds ret = img.data[I...]
     ret
 end
+@inline function Base.getindex{T,N}(img::ImageMetaAxis{T,N}, ax::Axis, I...)
+    img.data[ax, I...]
+end
 @inline function Base.setindex!{T}(img::ImageMeta{T,1}, val, i::Int)
     @boundscheck checkbounds(img.data, i)
     @inbounds img.data[i] = val
@@ -83,6 +86,11 @@ end
     @inbounds img.data[I...] = val
     val
 end
+@inline function Base.setindex!{T,N}(img::ImageMetaAxis{T,N}, val, ax::Axis, I...)
+    setindex!(img.data, val, ax, I...)
+end
+
+Base.view(img::ImageMetaAxis, ax::Axis, I...) = view(img.data, ax, I...)
 
 Base.getindex(img::ImageMeta, propname::AbstractString) = img.properties[propname]
 

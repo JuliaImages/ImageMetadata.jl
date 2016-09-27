@@ -208,7 +208,10 @@ end
     @test_throws ErrorException axisdim(M, Axis{:z})
     @test axisnames(M) == (:y, :x)
     @test axisvalues(M) == (1:3, 1:5)
-    @test view(M, "y", 2:3) == A[Axis{:y}(2:3)]
+    @test M[Axis{:y}(2:3)] == A[Axis{:y}(2:3)]
+    @test view(M, Axis{:y}(2:3)) == A[Axis{:y}(2:3)]
+    M[Axis{:y}(2:3), Axis{:x}(1)] = -5
+    @test all(A[2:3,1] .== -5)
 end
 
 @testset "show" begin
