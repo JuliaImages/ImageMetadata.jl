@@ -1,11 +1,6 @@
 using Colors, ColorVectorSpace, SimpleTraits, ImageAxes, ImageMetadata
 using Base.Test
 
-testing_units = Int == Int64
-if testing_units
-    using SIUnits, SIUnits.ShortUnits
-end
-
 msg_contains(pass, msg) = contains(pass.value.msg, msg) || error(pass.value.msg, " does not contain \"", msg, "\"")
 
 @testset "Deprecated" begin

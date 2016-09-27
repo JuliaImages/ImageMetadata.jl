@@ -115,8 +115,6 @@ end
 
 # similar
 Base.similar{T}(img::ImageMeta, ::Type{T}, shape::Dims) = ImageMeta(similar(img.data, T, shape), deepcopy(img.properties))
-Base.similar{T}(img::ImageMeta, ::Type{T}, shape::Base.NeedsShaping) = ImageMeta(similar(img.data, T, Base.to_shape(shape)), deepcopy(img.properties))
-Base.similar{T}(img::ImageMeta, ::Type{T}, shape::Base.DimsOrInds) = ImageMeta(similar(img.data, T, shape), deepcopy(img.properties))
 
 # Create a new "Image" (could be just an Array) copying the properties
 # but replacing the data
@@ -154,7 +152,7 @@ Base.reinterpret{T}(::Type{T}, img::ImageMetaArray) = shareproperties(img, reint
 
 ImageCore.data(img::ImageMeta) = img.data   # fixme when deprecation is removed from ImageCore
 function ImageCore.permuteddimsview(A::ImageMeta, perm)
-    ip = sortperm([perm...][coords_spatial(A)])  # the inverse spatial permutation
+    ip = sortperm([perm...][[coords_spatial(A)...]])  # the inverse spatial permutation
     permutedims_props!(copyproperties(A, permuteddimsview(A.data, perm)), ip)
 end
 ImageCore.channelview(A::ImageMeta) = shareproperties(A, channelview(A.data))
@@ -181,14 +179,8 @@ Base.get(img::ImageMeta, k::AbstractString, default) = get(img.properties, k, de
 macro get(img, k, default)
     quote
         img, k = $(esc(img)), $(esc(k))
-        local val
-        if !isa(img, ImageMeta)
-            val = $(esc(default))
-        else
-            index = Base.ht_keyindex(img.properties, k)
-            val = (index > 0) ? img.properties.vals[index] : $(esc(default))
-        end
-        val
+        index = Base.ht_keyindex(img.properties, k)
+        (index > 0) ? img.properties.vals[index] : $(esc(default))
     end
 end
 
