@@ -12,7 +12,6 @@ notifications:
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
   # For the time being, clone unregistered packages
-  - julia -e 'Pkg.clone("https://github.com/mbauman/AxisArrays.jl")'
   - julia -e 'Pkg.clone("https://github.com/JuliaImages/ImageAxes.jl")'
   # Back to the regular script
   - julia -e 'Pkg.clone(pwd()); Pkg.build("ImageMetadata"); Pkg.test("ImageMetadata"; coverage=true)'
