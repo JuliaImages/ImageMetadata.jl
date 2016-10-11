@@ -201,7 +201,7 @@ end
 ImageCore.channelview(A::ImageMeta) = shareproperties(A, channelview(A.data))
 ImageCore.colorview{C<:Colorant}(::Type{C}, A::ImageMeta) = shareproperties(A, colorview(C, A.data))
 ImageCore.rawview{T<:Real}(A::ImageMeta{T}) = shareproperties(A, rawview(A.data))
-ImageCore.ufixedview{T<:FixedPoint,S<:Unsigned}(::Type{T}, A::ImageMeta{S}) = shareproperties(A, ufixedview(T, A.data))
+ImageCore.normedview{T<:FixedPoint,S<:Unsigned}(::Type{T}, A::ImageMeta{S}) = shareproperties(A, normedview(T, A.data))
 
 # AxisArrays functions
 AxisArrays.axes(img::ImageMetaAxis) = axes(img.data)
