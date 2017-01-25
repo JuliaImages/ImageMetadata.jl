@@ -87,17 +87,20 @@ function check_deprecated_properties(data, properties)
     if haskey(properties, "limits")
         local z, o
         try
-            z, o = zero(eltype(data)), one(eltype(data))
+            T = eltype(data)
+            z = zero(T)
+            o = mapc(x->one(x), z)
         catch
             z, o = 0, 1
         end
         error("\"limits\" property is ignored, limits are always ($z,$o)")
     end
     if haskey(properties, "timedim")
-        error("\"timedim\" property is ignored, please switch to ImageAxes and use A = AxisArray(data, ..., :time, ...)")
+        error("\"timedim\" property is ignored, please use the AxisArrays package and A = AxisArray(data, ..., :time, ...)")
     end
     if haskey(properties, "pixelspacing")
-        error("\"pixelspacing\" property is ignored, please switch to ImageAxes and use A = AxisArray(data, ..., Axis{:y}(start:[step:]stop), ...)")
+        ps = properties["pixelspacing"]
+        error("\"pixelspacing\" property is ignored, please use the AxisArrays package and A = AxisArray(data, (axisnames...), ($(join(ps, ','))))")
     end
     if haskey(properties, "spatialorder")
         so = properties["spatialorder"]
@@ -105,7 +108,7 @@ function check_deprecated_properties(data, properties)
             so = map(s->":"*s, so)
         catch
         end
-        error("\"spatialorder\" property is ignored, please switch to ImageAxes and use A = AxisArray(data, $(join(so, ", ")))")
+        error("\"spatialorder\" property is ignored, please use the AxisArrays package and A = AxisArray(data, $(join(so, ", ")))")
     end
     nothing
 end

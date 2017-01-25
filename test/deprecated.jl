@@ -63,9 +63,9 @@ msg_contains(pass, msg) = contains(pass.value.msg, msg) || error(pass.value.msg,
             result = @test_throws ErrorException Im([1:3, 4:7], limits=(0.25,0.75)) # case where zero(eltype) fails
             msg_contains(result, "limits are always")
             result = @test_throws ErrorException Im(rand(3,5), pixelspacing=[2,1])
-            msg_contains(result, "please switch to ImageAxes")
+            msg_contains(result, "please use the AxisArrays package")
             result = @test_throws ErrorException Im(rand(3,5,12), timedim=3)
-            msg_contains(result, "please switch to ImageAxes")
+            msg_contains(result, "please use the AxisArrays package")
             result = @test_throws ErrorException Im(rand(3,5), spatialorder=["boo", "rah"])
             msg_contains(result, "data, :boo, :rah")
         end
