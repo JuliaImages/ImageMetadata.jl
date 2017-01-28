@@ -1,4 +1,4 @@
-using ImageMetadata, Colors, ColorVectorSpace, Base.Test
+using ImageMetadata, FixedPointNumbers, Colors, ColorVectorSpace, Base.Test
 
 @testset "operations" begin
     function checkmeta(A, B)
@@ -7,7 +7,7 @@ using ImageMetadata, Colors, ColorVectorSpace, Base.Test
         nothing
     end
     for A in (rand(Bool, 3, 5), rand(3, 5),
-              rand(Gray{U8}, 3, 5), rand(RGB{U8}, 3, 5))
+              rand(Gray{N0f8}, 3, 5), rand(RGB{N0f8}, 3, 5))
         M = ImageMeta(A)
         checkmeta(-M, -A)
         checkmeta(M + zero(eltype(M)), M)

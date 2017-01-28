@@ -1,4 +1,4 @@
-using Colors, ColorVectorSpace, SimpleTraits, ImageAxes, ImageMetadata
+using FixedPointNumbers, Colors, ColorVectorSpace, SimpleTraits, ImageAxes, ImageMetadata
 using Base.Test
 
 @testset "indexing" begin
@@ -6,8 +6,8 @@ using Base.Test
     for A = (rand(3),
              view(rand(6), 1:2:5),
              view(rand(6), [1,2,4]),
-             rand(RGB{U8}, 3),
-             rand(Gray{U8}, 3))
+             rand(RGB{N0f8}, 3),
+             rand(Gray{N0f8}, 3))
         img = ImageMeta(A, prop1=1, prop2=[1,2,3])
         @test eltype(img) == eltype(A)
         @test Base.linearindexing(img) == Base.linearindexing(A)
@@ -40,7 +40,7 @@ using Base.Test
               view(rand(4,6), 1:3, 1:5),
               view(rand(4,5), [1,2,4], :),
               reshape(1:15, 3, 5),
-              rand(RGB{U8}, 3, 5),
+              rand(RGB{N0f8}, 3, 5),
               rand(Gray{Float32}, 3, 5))
         img = ImageMeta(A, prop1=1, prop2=[1,2,3]) # TODO: add @inferred (see julia #17719)
         @test eltype(img) == eltype(A)
@@ -155,7 +155,7 @@ end
     @test img["prop1"] == -1
     @test v["prop1"] == -1
     @test c["prop1"] == 1
-    imgb = ImageMeta(rand(RGB{U8}, 2, 2), propa = "hello", propb = [1,2])
+    imgb = ImageMeta(rand(RGB{N0f8}, 2, 2), propa = "hello", propb = [1,2])
     copy!(img, imgb, "propa", "propb")
     @test img["propa"] == "hello"
     @test img["propb"] == [1,2]
@@ -178,7 +178,7 @@ end
 end
 
 @testset "views" begin
-    for A in (rand(Gray{U8}, 4, 5), rand(RGB{Float32}, 4, 5))
+    for A in (rand(Gray{N0f8}, 4, 5), rand(RGB{Float32}, 4, 5))
         t = now()
         M = ImageMeta(A, date=t)
         vM = channelview(M)
@@ -190,14 +190,14 @@ end
     end
     for (A,C) in ((rand(UInt8, 4, 5), Gray), (rand(UInt8, 3, 4, 5), RGB))
         M = ImageMeta(A)
-        vM = ufixedview(M)
+        vM = normedview(M)
         @test isa(vM, ImageMeta)
-        @test data(vM) == ufixedview(A)
+        @test data(vM) == normedview(A)
         cvM = colorview(C, vM)
         @test isa(cvM, ImageMeta)
-        @test cvM[1,2] === colorview(C, ufixedview(A))[1,2]
+        @test cvM[1,2] === colorview(C, normedview(A))[1,2]
     end
-    A = AxisArray(rand(RGB{U8}, 3, 5), :y, :x)
+    A = AxisArray(rand(RGB{N0f8}, 3, 5), :y, :x)
     t = now()
     M = ImageMeta(A, date=t)
     vM = channelview(M)

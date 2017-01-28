@@ -1,4 +1,4 @@
-using Colors, ColorVectorSpace, SimpleTraits, ImageAxes, ImageMetadata
+using FixedPointNumbers, Colors, ColorVectorSpace, SimpleTraits, ImageAxes, ImageMetadata
 using Base.Test
 
 msg_contains(pass, msg) = contains(pass.value.msg, msg) || error(pass.value.msg, " does not contain \"", msg, "\"")
@@ -7,7 +7,7 @@ msg_contains(pass, msg) = contains(pass.value.msg, msg) || error(pass.value.msg,
     a = rand(3,3)
     @inferred(Image(a))
     B = rand(convert(UInt16, 1):convert(UInt16, 20), 3, 5)
-    cmap = reinterpret(RGB, repmat(reinterpret(U8, round(UInt8, linspace(12, 255, 20)))', 3, 1))
+    cmap = reinterpret(RGB, repmat(reinterpret(N0f8, round(UInt8, linspace(12, 255, 20)))', 3, 1))
     img = ImageCmap(copy(B), cmap, prop="cmap")
     imgd = copy(img)
     @test size(img) == size(imgd) == (3,5)
@@ -16,9 +16,9 @@ msg_contains(pass, msg) = contains(pass.value.msg, msg) || error(pass.value.msg,
     @testset "indexing" begin
         c = img[1,1]
         @test red(c) == green(c) == blue(c)
-        @test_throws ErrorException (img[1,1] = RGB{U8}(0.2,0.4,0.6))
-        imgd[1,1] = RGB{U8}(0.2,0.4,0.6)
-        @test imgd[1,1] == RGB{U8}(0.2,0.4,0.6)
+        @test_throws ErrorException (img[1,1] = RGB{N0f8}(0.2,0.4,0.6))
+        imgd[1,1] = RGB{N0f8}(0.2,0.4,0.6)
+        @test imgd[1,1] == RGB{N0f8}(0.2,0.4,0.6)
     end
 
     @testset "views" begin
@@ -63,9 +63,9 @@ msg_contains(pass, msg) = contains(pass.value.msg, msg) || error(pass.value.msg,
             result = @test_throws ErrorException Im([1:3, 4:7], limits=(0.25,0.75)) # case where zero(eltype) fails
             msg_contains(result, "limits are always")
             result = @test_throws ErrorException Im(rand(3,5), pixelspacing=[2,1])
-            msg_contains(result, "please switch to ImageAxes")
+            msg_contains(result, "please use the AxisArrays package")
             result = @test_throws ErrorException Im(rand(3,5,12), timedim=3)
-            msg_contains(result, "please switch to ImageAxes")
+            msg_contains(result, "please use the AxisArrays package")
             result = @test_throws ErrorException Im(rand(3,5), spatialorder=["boo", "rah"])
             msg_contains(result, "data, :boo, :rah")
         end

@@ -11,9 +11,6 @@ notifications:
 # uncomment the following lines to override the default test script
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  # For the time being, clone unregistered packages
-  - julia -e 'Pkg.clone("https://github.com/JuliaImages/ImageAxes.jl")'
-  # Back to the regular script
   - julia -e 'Pkg.clone(pwd()); Pkg.build("ImageMetadata"); Pkg.test("ImageMetadata"; coverage=true)'
 after_success:
   # push coverage results to Codecov
