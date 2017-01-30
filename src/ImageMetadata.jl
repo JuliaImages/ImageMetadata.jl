@@ -123,7 +123,7 @@ Create a new "image," copying the properties dictionary of `img` but
 using the data of the AbstractArray `data`. Note that changing the
 properties of `imgnew` does not affect the properties of `img`.
 
-See also: shareproperties.
+See also: [`shareproperties`](@ref).
 """
 copyproperties(img::ImageMeta, data::AbstractArray) =
     ImageMeta(data, deepcopy(img.properties))
@@ -135,7 +135,7 @@ Create a new "image," reusing the properties dictionary of `img` but
 using the data of the AbstractArray `data`. The two images have
 synchronized properties; modifying one also affects the other.
 
-See also: copyproperties.
+See also: [`copyproperties`](@ref).
 """
 shareproperties(img::ImageMeta, data::AbstractArray) = ImageMeta(data, img.properties)
 
@@ -149,7 +149,7 @@ Like `img[I...]`, except that the returned `newimg` is another
 ImageMeta. Like the data component, the properties dictionary of `img`
 is copied, so `newimg` is not linked in any way to `img`.
 
-See also: viewim.
+See also: [`viewim`](@ref).
 """
 getindexim(img::ImageMeta, I...) = copyproperties(img, img.data[I...])
 
@@ -161,7 +161,7 @@ ImageMeta. Like the data component, the properties dictionary of `img`
 is shared with `img`, so that changes to either the data or the
 properties apply to both.
 
-See also: getindexim.
+See also: [`getindexim`](@ref).
 """
 viewim(img::ImageMeta, I...) = shareproperties(img, view(img.data, I...))
 
@@ -190,7 +190,7 @@ Extract the data from `img`, omitting the properties
 dictionary. `array` shares storage with `img`, so changes to one
 affect the other.
 
-See also: properties.
+See also: [`properties`](@ref).
 """
 ImageCore.data(img::ImageMeta) = img.data   # fixme when deprecation is removed from ImageCore
 
@@ -217,7 +217,7 @@ AxisArrays.axisvalues(img::ImageMetaAxis) = axisvalues(img.data)
 Extract the properties dictionary `props` for `imgmeta`. `props`
 shares storage with `img`, so changes to one affect the other.
 
-See also: data.
+See also: [`data`](@ref).
 """
 properties(img::ImageMeta) = img.properties
 
