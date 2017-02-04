@@ -5,6 +5,7 @@ using Base.Test
 
 include("core.jl")
 include("operations.jl")
+info("Beginning of tests with deprecation warnings\n\n")
 include("deprecated.jl")
 
 nothing

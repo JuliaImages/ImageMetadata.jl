@@ -10,6 +10,7 @@ using ColorVectorSpace   # for overriding math operations with Gray/RGB
 
 import Base: +, .+, -, .-, *, .*, /, ./, .^, .<, .>, .==
 import Base: permutedims
+using Base: ViewIndex
 
 export
     # types
@@ -53,44 +54,60 @@ Base.size(A::ImageMeta) = size(A.data)
 Base.linearindexing(A::ImageMeta) = Base.linearindexing(A.data)
 
 # getindex and setindex!
-@inline function Base.getindex{T}(img::ImageMeta{T,1}, i::Int)
-    @boundscheck checkbounds(img.data, i)
-    @inbounds ret = img.data[i]
-    ret
+for AType in (ImageMeta, ImageMetaAxis)
+    @eval begin
+        @inline function Base.getindex{T}(img::$AType{T,1}, i::Int)
+            @boundscheck checkbounds(img.data, i)
+            @inbounds ret = img.data[i]
+            ret
+        end
+        @inline function Base.getindex(img::$AType, i::Int)
+            @boundscheck checkbounds(img.data, i)
+            @inbounds ret = img.data[i]
+            ret
+        end
+        @inline function Base.getindex{T,N}(img::$AType{T,N}, I::Vararg{Int,N})
+            @boundscheck checkbounds(img.data, I...)
+            @inbounds ret = img.data[I...]
+            ret
+        end
+
+        @inline function Base.setindex!{T}(img::$AType{T,1}, val, i::Int)
+            @boundscheck checkbounds(img.data, i)
+            @inbounds img.data[i] = val
+            val
+        end
+        @inline function Base.setindex!(img::$AType, val, i::Int)
+            @boundscheck checkbounds(img.data, i)
+            @inbounds img.data[i] = val
+            val
+        end
+        @inline function Base.setindex!{T,N}(img::$AType{T,N}, val, I::Vararg{Int,N})
+            @boundscheck checkbounds(img.data, I...)
+            @inbounds img.data[I...] = val
+            val
+        end
+    end
 end
-@inline function Base.getindex(img::ImageMeta, i::Int)
-    @boundscheck checkbounds(img.data, i)
-    @inbounds ret = img.data[i]
-    ret
-end
-@inline function Base.getindex{T,N}(img::ImageMeta{T,N}, I::Vararg{Int,N})
-    @boundscheck checkbounds(img.data, I...)
-    @inbounds ret = img.data[I...]
-    ret
-end
-@inline function Base.getindex{T,N}(img::ImageMetaAxis{T,N}, ax::Axis, I...)
+
+@inline function Base.getindex(img::ImageMetaAxis, ax::Axis, I...)
     img.data[ax, I...]
 end
-@inline function Base.setindex!{T}(img::ImageMeta{T,1}, val, i::Int)
-    @boundscheck checkbounds(img.data, i)
-    @inbounds img.data[i] = val
-    val
+@inline function Base.getindex(img::ImageMetaAxis, i::Union{Integer,AbstractVector,Colon}, I...)
+    img.data[i, I...]
 end
-@inline function Base.setindex!(img::ImageMeta, val, i::Int)
-    @boundscheck checkbounds(img.data, i)
-    @inbounds img.data[i] = val
-    val
-end
-@inline function Base.setindex!{T,N}(img::ImageMeta{T,N}, val, I::Vararg{Int,N})
-    @boundscheck checkbounds(img.data, I...)
-    @inbounds img.data[I...] = val
-    val
-end
-@inline function Base.setindex!{T,N}(img::ImageMetaAxis{T,N}, val, ax::Axis, I...)
+
+@inline function Base.setindex!(img::ImageMetaAxis, val, ax::Axis, I...)
     setindex!(img.data, val, ax, I...)
+end
+@inline function Base.setindex!(img::ImageMetaAxis, val, i::Union{Integer,AbstractVector,Colon}, I...)
+    setindex!(img.data, val, i, I...)
 end
 
 Base.view(img::ImageMetaAxis, ax::Axis, I...) = view(img.data, ax, I...)
+Base.view{T,N}(img::ImageMetaAxis{T,N}, I::Vararg{ViewIndex,N}) = view(img.data, I...)
+Base.view(img::ImageMetaAxis, i::ViewIndex) = view(img.data, i)
+Base.view{N}(img::ImageMetaAxis, I::Vararg{ViewIndex,N}) = view(img.data, I...)
 
 Base.getindex(img::ImageMeta, propname::AbstractString) = img.properties[propname]
 
@@ -115,6 +132,7 @@ end
 
 # similar
 Base.similar{T}(img::ImageMeta, ::Type{T}, shape::Dims) = ImageMeta(similar(img.data, T, shape), deepcopy(img.properties))
+Base.similar{T}(img::ImageMetaAxis, ::Type{T}) = ImageMeta(similar(img.data, T), deepcopy(img.properties))
 
 """
     copyproperties(img::ImageMeta, data) -> imgnew

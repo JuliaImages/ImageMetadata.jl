@@ -85,6 +85,18 @@ using Base.Test
         @test val == 1.234
         a = zeros(3,5)
     end
+
+    # Issue #10
+    A = AxisArray(rand(3,5), :y, :x)
+    B = ImageMeta(A, info="blah")
+    Broi = B[2:3, 2:3]
+    @test isa(Broi, AxisArray)
+    @test axisnames(Broi) == (:y, :x)
+    A1, B1 = A[2:7], B[2:7]
+    @test typeof(A1) == typeof(B1) && A1 == B1
+    Broi = view(B, 2:3, 2:3)
+    @test isa(Broi, AxisArray)
+    @test axisnames(Broi) == (:y, :x)
 end
 
 @testset "convert" begin
@@ -136,6 +148,17 @@ end
     @test img2.data != img.data
     img2["prop3"] = 7
     @test !haskey(img, "prop3")
+
+    A = AxisArray(rand(3,5), :y, :x)
+    B = ImageMeta(A, info="blah")
+    C = similar(B)
+    @test isa(C, ImageMeta)
+    @test isa(C.data, AxisArray)
+    @test eltype(C) == Float64
+    C = similar(B, RGB{Float16})
+    @test isa(C, ImageMeta)
+    @test isa(C.data, AxisArray)
+    @test eltype(C) == RGB{Float16}
 end
 
 @testset "copy/shareproperties/viewim" begin
