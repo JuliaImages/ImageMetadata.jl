@@ -148,6 +148,17 @@ end
     @test img2.data != img.data
     img2["prop3"] = 7
     @test !haskey(img, "prop3")
+
+    A = AxisArray(rand(3,5), :y, :x)
+    B = ImageMeta(A, info="blah")
+    C = similar(B)
+    @test isa(C, ImageMeta)
+    @test isa(C.data, AxisArray)
+    @test eltype(C) == Float64
+    C = similar(B, RGB{Float16})
+    @test isa(C, ImageMeta)
+    @test isa(C.data, AxisArray)
+    @test eltype(C) == RGB{Float16}
 end
 
 @testset "copy/shareproperties/viewim" begin

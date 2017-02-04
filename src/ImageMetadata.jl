@@ -132,6 +132,7 @@ end
 
 # similar
 Base.similar{T}(img::ImageMeta, ::Type{T}, shape::Dims) = ImageMeta(similar(img.data, T, shape), deepcopy(img.properties))
+Base.similar{T}(img::ImageMetaAxis, ::Type{T}) = ImageMeta(similar(img.data, T), deepcopy(img.properties))
 
 """
     copyproperties(img::ImageMeta, data) -> imgnew
