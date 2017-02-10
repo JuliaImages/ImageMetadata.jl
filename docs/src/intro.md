@@ -77,16 +77,12 @@ through Julia's type system.  However, functions that receive an
 in your own code it's fine to use properties to your advantage for
 custom tasks.
 
-### getindexim/viewim
+### Vector indexing (region-of-interest selection)
 
-As with the rest of julia, `img[i,j,...]` will return just the values
-in an `ImageMeta`; the properties dictionary is "left behind." You can
-ensure that the return is also an `ImageMeta` using `getindexim`
-instead of `getindex` (`img[i,j]` gets converted into `getindex(img,
-i, j)`, hence the name):
+When indexing over an extended area, `img[i,j,...]` returns an `ImageMeta`:
 
 ```julia
-julia> c = getindexim(img, 1:2, 1:2)
+julia> c = img[1:2, 1:2]
 RGB ImageMeta with:
   data: 2×2 Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},2}
   properties:
@@ -97,7 +93,7 @@ RGB ImageMeta with:
 This copies both the data (just the relevant portions) and the properties dictionary. In contrast,
 
 ```julia
-julia> v = viewim(img, 1:2, 1:2)
+julia> v = view(img, 1:2, 1:2)
 RGB ImageMeta with:
   data: 2×2 SubArray{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},2,Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},2},Tuple{UnitRange{Int64},UnitRange{Int64}},false}
   properties:
