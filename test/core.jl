@@ -15,10 +15,10 @@ using Base.Test
         @test size(img) == (3,)
         @test data(img) === A
         for i = 1:3
-            @test img[i] === A[i]
+            @test @inferred(img[i]) === A[i]
         end
         for I in eachindex(img)
-            @test img[I] === A[I]
+            @test @inferred(img[I]) === A[I]
         end
         k = 0
         for a in img
@@ -49,13 +49,13 @@ using Base.Test
         @test size(img) == (3,5)
         @test data(img) === A
         for j = 1:5, i = 1:3
-            @test img[i,j] === A[i,j]
+            @test @inferred(img[i,j]) === A[i,j]
         end
         for k = 1:15
-            @test img[k] === A[k]
+            @test @inferred(img[k]) === A[k]
         end
         for I in eachindex(img)
-            @test img[I] === A[I]
+            @test @inferred(img[I]) === A[I]
         end
         k = 0
         for a in img
@@ -74,6 +74,17 @@ using Base.Test
         @test img["prop2"] == [1,2,3]
         img["prop1"] = -1
         @test img["prop1"] == -1
+        # vector-indexing
+        @test isa(@inferred(img[:,:]), ImageMeta) && img[:,:] == img
+        @test isa(@inferred(img[:]), ImageMeta) && img[:] == A[:]
+        @test isa(@inferred(img[1:2,1:2]), ImageMeta) && img[1:2,1:2] == A[1:2,1:2]
+        @test isa(@inferred(img[1:2,:]), ImageMeta) && img[1:2,:] == A[1:2,:]
+        @test isa(@inferred(img[:,1:2]), ImageMeta) && img[:,1:2] == A[:,1:2]
+        @test isa(@inferred(view(img,:,:)), ImageMeta) && view(img,:,:) == img
+        @test isa(@inferred(view(img,:)), ImageMeta) && view(img,:) == A[:]
+        @test isa(@inferred(view(img,1:2,1:2)), ImageMeta) && view(img,1:2,1:2) == A[1:2,1:2]
+        @test isa(@inferred(view(img,1:2,:)), ImageMeta) && view(img,1:2,:) == A[1:2,:]
+        @test isa(@inferred(view(img,:,1:2)), ImageMeta) && view(img,:,1:2) == A[:,1:2]
     end
     # Test bounds-checking removal by @inbounds
     if Base.JLOptions().check_bounds != 1 && Base.JLOptions().can_inline == 1
@@ -90,12 +101,12 @@ using Base.Test
     A = AxisArray(rand(3,5), :y, :x)
     B = ImageMeta(A, info="blah")
     Broi = B[2:3, 2:3]
-    @test isa(Broi, AxisArray)
+    @test isa(Broi, ImageMeta)
     @test axisnames(Broi) == (:y, :x)
     A1, B1 = A[2:7], B[2:7]
-    @test typeof(A1) == typeof(B1) && A1 == B1
+    @test isa(B1, ImageMeta) && A1 == B1
     Broi = view(B, 2:3, 2:3)
-    @test isa(Broi, AxisArray)
+    @test isa(Broi, ImageMeta)
     @test axisnames(Broi) == (:y, :x)
 end
 
@@ -164,8 +175,8 @@ end
 @testset "copy/shareproperties/viewim" begin
     img = ImageMeta(rand(3,5); prop1 = 1, prop2 = [1,2,3])
     @test !isempty(properties(img))
-    v = viewim(img, 1:2, 1:2)
-    c = getindexim(img, 1:2, 1:2)
+    v = view(img, 1:2, 1:2)
+    c = img[1:2, 1:2]
     @test v["prop1"] == 1
     @test c["prop1"] == 1
     img2 = copyproperties(img, reshape(1:15, 5, 3))
@@ -194,8 +205,8 @@ end
                               Axis{:y}(1:5),
                               Axis{:time}(0.1:0.1:0.8));
                     prop1 = 1, prop2 = [1,2,3])
-    v = viewim(img, Axis{:time}(0.25..0.5))
-    c = getindexim(img, Axis{:time}(0.25..0.5))
+    v = view(img, Axis{:time}(0.25..0.5))
+    c = img[Axis{:time}(0.25..0.5)]
     @test v["prop1"] == 1
     @test c["prop1"] == 1
 end

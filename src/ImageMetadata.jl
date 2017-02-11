@@ -19,11 +19,9 @@ export
     # functions
     copyproperties,
     data,
-    getindexim,
     properties,
     shareproperties,
-    spatialproperties,
-    viewim
+    spatialproperties
 
 #### types and constructors ####
 
@@ -91,10 +89,10 @@ for AType in (ImageMeta, ImageMetaAxis)
 end
 
 @inline function Base.getindex(img::ImageMetaAxis, ax::Axis, I...)
-    img.data[ax, I...]
+    copyproperties(img, img.data[ax, I...])
 end
 @inline function Base.getindex(img::ImageMetaAxis, i::Union{Integer,AbstractVector,Colon}, I...)
-    img.data[i, I...]
+    copyproperties(img, img.data[i, I...])
 end
 
 @inline function Base.setindex!(img::ImageMetaAxis, val, ax::Axis, I...)
@@ -104,10 +102,10 @@ end
     setindex!(img.data, val, i, I...)
 end
 
-Base.view(img::ImageMetaAxis, ax::Axis, I...) = view(img.data, ax, I...)
-Base.view{T,N}(img::ImageMetaAxis{T,N}, I::Vararg{ViewIndex,N}) = view(img.data, I...)
-Base.view(img::ImageMetaAxis, i::ViewIndex) = view(img.data, i)
-Base.view{N}(img::ImageMetaAxis, I::Vararg{ViewIndex,N}) = view(img.data, I...)
+Base.view(img::ImageMeta, ax::Axis, I...) = shareproperties(img, view(img.data, ax, I...))
+Base.view{T,N}(img::ImageMeta{T,N}, I::Vararg{ViewIndex,N}) = shareproperties(img, view(img.data, I...))
+Base.view(img::ImageMeta, i::ViewIndex) = shareproperties(img, view(img.data, i))
+Base.view{N}(img::ImageMeta, I::Vararg{ViewIndex,N}) = shareproperties(img, view(img.data, I...))
 
 Base.getindex(img::ImageMeta, propname::AbstractString) = img.properties[propname]
 
@@ -159,29 +157,6 @@ shareproperties(img::ImageMeta, data::AbstractArray) = ImageMeta(data, img.prope
 
 # Delete a property!
 Base.delete!(img::ImageMeta, propname::AbstractString) = delete!(img.properties, propname)
-
-"""
-    getindexim(img::ImageMeta, I...) -> newimg
-
-Like `img[I...]`, except that the returned `newimg` is another
-ImageMeta. Like the data component, the properties dictionary of `img`
-is copied, so `newimg` is not linked in any way to `img`.
-
-See also: [`viewim`](@ref).
-"""
-getindexim(img::ImageMeta, I...) = copyproperties(img, img.data[I...])
-
-"""
-    viewim(img::ImageMeta, I...) -> newimg
-
-Like `view(img, I...)`, except that the returned `newimg` is another
-ImageMeta. Like the data component, the properties dictionary of `img`
-is shared with `img`, so that changes to either the data or the
-properties apply to both.
-
-See also: [`getindexim`](@ref).
-"""
-viewim(img::ImageMeta, I...) = shareproperties(img, view(img.data, I...))
 
 # Iteration
 # Defer to the array object in case it has special iteration defined

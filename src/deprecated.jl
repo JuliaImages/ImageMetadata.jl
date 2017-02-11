@@ -14,13 +14,13 @@ Base.@deprecate_binding AbstractImageIndexed ImageMetaIndirect
 @deprecate ImageCmap(data, cmap; kwargs...)  ImageMeta(IndirectArray(data, cmap); kwargs...)
 @deprecate ImageCmap(data, cmap, properties) ImageMeta(IndirectArray(data, cmap), properties)
 
-Base.@deprecate_binding sliceim viewim
+Base.@deprecate_binding sliceim view
 
 function subim(img::Union{AxisArray,ImageMeta}, args...)
     newargs = _subim_indexes(args)
     newargstr = join(map(string, newargs), ", ")
-    Base.depwarn("subim is deprecated, call viewim(img, $newargstr) instead", :subim)
-    viewim(img, newargs...)
+    Base.depwarn("subim is deprecated, call view(img, $newargstr) instead", :subim)
+    view(img, newargs...)
 end
 export subim
 
@@ -48,20 +48,12 @@ using ImageAxes: getaxes
 function Base.view(img::ImageMetaAxis, dimname::AbstractString, ind::Base.ViewIndex, args...)
     axs = getaxes(dimname, ind, args...)
     Base.depwarn("indexing with strings is deprecated, use view(img, $(axs...)) instead", :view!)
-    view(img.data, axs...)
-end
-
-function viewim(img::ImageMetaAxis, dimname::AbstractString, ind::Base.ViewIndex, args...)
-    axs = getaxes(dimname, ind, args...)
-    Base.depwarn("indexing with strings is deprecated, use view(img, $(axs...)) instead", :view!)
     shareproperties(img, view(img.data, axs...))
 end
 
 @deprecate copyproperties(img::AbstractArray, data::AbstractArray) data
 @deprecate shareproperties(img::AbstractArray, data::AbstractArray) data
 
-@deprecate getindexim(img::AbstractArray, I...) img[I...]
-@deprecate viewim(img::AbstractArray, I...) view(img, I...)
 
 #### Properties ####
 
@@ -152,3 +144,6 @@ import ImageAxes.storageorder
 @deprecate real(img::ImageMeta) shareproperties(img,real.(data(img)))
 @deprecate imag(img::ImageMeta) shareproperties(img,imag.(data(img)))
 @deprecate abs(img::ImageMeta) shareproperties(img,abs.(data(img)))
+
+@deprecate getindexim getindex
+@deprecate viewim view

@@ -70,6 +70,13 @@ msg_contains(pass, msg) = contains(pass.value.msg, msg) || error(pass.value.msg,
             msg_contains(result, "data, :boo, :rah")
         end
     end
+
+    @testset "getindexim/viewim" begin
+        img = ImageMeta(rand(3,5); prop1 = 1, prop2 = [1,2,3])
+        @test !isempty(properties(img))
+        @test isa(viewim(img, 1:2, 1:2), ImageMeta)
+        @test isa(getindexim(img, 1:2, 1:2), ImageMeta)
+    end
 end
 
 nothing
