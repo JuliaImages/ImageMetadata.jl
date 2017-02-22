@@ -1,4 +1,5 @@
 using FixedPointNumbers, Colors, ColorVectorSpace, SimpleTraits, ImageAxes, ImageMetadata
+using Compat
 using Base.Test
 
 @testset "indexing" begin
@@ -10,7 +11,7 @@ using Base.Test
              rand(Gray{N0f8}, 3))
         img = ImageMeta(A, prop1=1, prop2=[1,2,3])
         @test eltype(img) == eltype(A)
-        @test Base.linearindexing(img) == Base.linearindexing(A)
+        @test IndexStyle(img) == IndexStyle(A)
         @test ndims(img) == 1
         @test size(img) == (3,)
         @test data(img) === A
@@ -44,7 +45,7 @@ using Base.Test
               rand(Gray{Float32}, 3, 5))
         img = ImageMeta(A, prop1=1, prop2=[1,2,3]) # TODO: add @inferred (see julia #17719)
         @test eltype(img) == eltype(A)
-        @test Base.linearindexing(img) == Base.linearindexing(A)
+        @test IndexStyle(img) == IndexStyle(A)
         @test ndims(img) == 2
         @test size(img) == (3,5)
         @test data(img) === A
@@ -266,20 +267,18 @@ end
 @testset "show" begin
     for supp in (Set(["prop3"]), "prop3")
         img = ImageMeta(rand(3,5); prop1 = 1, prop2 = [1,2,3], suppress = supp, prop3 = "hide")
-        io = IOBuffer()
-        show(io, img)
-        str = takebuf_string(io)
+        str = string(img)
         @test contains(str, "ImageMeta with")
         @test contains(str, "prop1")
         @test contains(str, "prop2")
-        @test contains(str, "[1,2,3]")
+        @test contains(str, "$([1,2,3])")
         @test contains(str, "prop3")
         @test !contains(str, "hide")
         @test contains(str, "<suppressed>")
         @test !contains(str, "suppress:")
         io = IOBuffer()
         show(io, MIME("text/plain"), img)
-        str2 = takebuf_string(io)
+        str2 = String(take!(io))
         @test str == str2
     end
 end

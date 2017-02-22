@@ -8,7 +8,7 @@ import Base: sqrt, atan2, hypot, real, imag, abs
 Base.@deprecate_binding Image ImageMeta
 Base.@deprecate_binding AbstractImage ImageMeta
 Base.@deprecate_binding AbstractImageDirect ImageMeta
-typealias ImageMetaIndirect{T,N,A<:IndirectArray} ImageMeta{T,N,A}
+@compat const ImageMetaIndirect{T,N,A<:IndirectArray} = ImageMeta{T,N,A}
 Base.@deprecate_binding AbstractImageIndexed ImageMetaIndirect
 
 @deprecate ImageCmap(data, cmap; kwargs...)  ImageMeta(IndirectArray(data, cmap); kwargs...)

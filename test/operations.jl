@@ -9,29 +9,34 @@ using ImageMetadata, FixedPointNumbers, Colors, ColorVectorSpace, Base.Test
     for A in (rand(Bool, 3, 5), rand(3, 5),
               rand(Gray{N0f8}, 3, 5), rand(RGB{N0f8}, 3, 5))
         M = ImageMeta(A)
+        M2 = similar(M)
         checkmeta(-M, -A)
         checkmeta(M + zero(eltype(M)), M)
         checkmeta(zero(eltype(M)) + M, M)
         checkmeta(M - zero(eltype(M)), M)
         checkmeta(zero(eltype(M)) - M, -M)
         B = falses(size(M))
-        for op in (+, .+)
-            if !(eltype(A) <: RGB)
-                checkmeta(op(M, B), M)
-                checkmeta(op(B, M), M)
-            end
-            @test_throws ErrorException op(M, M)
-            checkmeta(op(A, M), A+A)
-            checkmeta(op(M, A), A+A)
-        end
-        for op in (-, .-)
-            if !(eltype(A) <: RGB)
-                checkmeta(op(M, B), M)
-                checkmeta(op(B, M), -M)
-            end
-            @test_throws ErrorException op(M, M)
-            checkmeta(op(A, M), 0*M)
-            checkmeta(op(M, A), 0*M)
+        if !(eltype(A) <: RGB)
+            checkmeta(M + B, M)
+            checkmeta(M .+ B, M)
+            checkmeta(B + M, M)
+            checkmeta(B .+ M, M)
+            @test_throws ErrorException M + M2
+            @test_throws ErrorException M .+ M2
+            checkmeta(A + M, A+A)
+            checkmeta(A .+ M, A+A)
+            checkmeta(M + A, A+A)
+            checkmeta(M .+ A, A+A)
+            checkmeta(M - B, M)
+            checkmeta(M .- B, M)
+            checkmeta(B - M, -M)
+            checkmeta(B .- M, -M)
+            @test_throws ErrorException M - M2
+            @test_throws ErrorException M .- M2
+            checkmeta(A - M, 0*M)
+            checkmeta(A .- M, 0*M)
+            checkmeta(M - A, 0*M)
+            checkmeta(M .- A, 0*M)
         end
         checkmeta(M*2, 2*M)
         checkmeta(2.*M, 2*M)
@@ -41,14 +46,14 @@ using ImageMetadata, FixedPointNumbers, Colors, ColorVectorSpace, Base.Test
         checkmeta(M.*B, 0*M)
         checkmeta(B.*M, 0*M)
         if !(eltype(A) <: RGB)
-            @test_throws ErrorException M.*M
+            @test_throws ErrorException M.*M2
             checkmeta(A.*M, A.*A)
             checkmeta(M.*A, A.*A)
             checkmeta(M.^1, M)
         end
         B1 = trues(size(M))
         checkmeta(M./B1, M)
-        @test_throws ErrorException M./M
+        @test_throws ErrorException M./M2
         if !(eltype(A) <: RGB)
             checkmeta(M + 0.0, M)
             checkmeta(0.0 + M, M)

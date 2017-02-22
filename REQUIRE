@@ -5,3 +5,4 @@ Colors
 ColorVectorSpace 0.1.11
 ImageCore
 ImageAxes
+Compat 0.19

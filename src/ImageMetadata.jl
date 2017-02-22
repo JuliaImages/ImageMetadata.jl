@@ -7,10 +7,17 @@ module ImageMetadata
 using ImageAxes
 using ImageCore, Colors, FixedPointNumbers
 using ColorVectorSpace   # for overriding math operations with Gray/RGB
+using Compat
 
 import Base: +, .+, -, .-, *, .*, /, ./, .^, .<, .>, .==
+import Base: +, -, *, /
 import Base: permutedims
-using Base: ViewIndex
+
+if VERSION < v"0.6.0-dev.2068"
+    const ViewIndex = Base.ViewIndex
+else
+    const ViewIndex = Union{Base.ViewIndex, Colon}
+end
 
 export
     # types
@@ -36,20 +43,22 @@ type ImageMeta{T,N,A<:AbstractArray} <: AbstractArray{T,N}
     data::A
     properties::Dict{String,Any}
 
-    function ImageMeta(data::AbstractArray, properties::Dict)
+    function (::Type{ImageMeta{T,N,A}}){T,N,A}(data::AbstractArray, properties::Dict)
         check_deprecated_properties(data, properties)
-        new(data, properties)
+        new{T,N,A}(data, properties)
     end
 end
 ImageMeta{T,N}(data::AbstractArray{T,N}, props::Dict) = ImageMeta{T,N,typeof(data)}(data,props)
 ImageMeta(data::AbstractArray; kwargs...) = ImageMeta(data, kwargs2dict(kwargs))
 
-typealias ImageMetaArray{T,N,A<:Array}    ImageMeta{T,N,A}
-typealias ImageMetaAxis{T,N,A<:AxisArray} ImageMeta{T,N,A}
+@compat const ImageMetaArray{T,N,A<:Array} = ImageMeta{T,N,A}
+@compat const ImageMetaAxis{T,N,A<:AxisArray} = ImageMeta{T,N,A}
 
 Base.size(A::ImageMeta) = size(A.data)
 
-Base.linearindexing(A::ImageMeta) = Base.linearindexing(A.data)
+datatype{T,N,A<:AbstractArray}(::Type{ImageMeta{T,N,A}}) = A
+
+@compat Base.IndexStyle{M<:ImageMeta}(::Type{M}) = IndexStyle(datatype(M))
 
 # getindex and setindex!
 for AType in (ImageMeta, ImageMetaAxis)
@@ -175,6 +184,7 @@ Base.show(io::IO, img::ImageMeta) = showim(io, img)
 Base.show(io::IO, ::MIME"text/plain", img::ImageMeta) = showim(io, img)
 
 Base.reinterpret{T}(::Type{T}, img::ImageMetaArray) = shareproperties(img, reinterpret(T, img.data))
+Base.reinterpret{T}(::Type{T}, img::ImageMeta) = error("reinterpret method not defined for $(typeof(img)). Consider a MappedArray instead.")
 
 """
     data(img::ImageMeta) -> array
