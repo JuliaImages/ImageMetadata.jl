@@ -1,7 +1,9 @@
 using ImageMetadata
 using Base.Test
 
-@test isempty(detect_ambiguities(ImageMetadata,ImageAxes,ImageCore,IndirectArrays,Base,Core))
+if VERSION < v"0.6.0-dev"
+    @test isempty(detect_ambiguities(ImageMetadata,ImageAxes,ImageCore,IndirectArrays,Base,Core))
+end
 
 include("core.jl")
 include("operations.jl")
