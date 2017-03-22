@@ -238,6 +238,7 @@ macro get(img, k, default)
     end
 end
 
+ImageAxes.timeaxis(img::ImageMetaAxis) = timeaxis(data(img))
 ImageAxes.timedim(img::ImageMetaAxis) = timedim(data(img))
 ImageCore.colordim(img::ImageMetaAxis) = colordim(data(img))
 

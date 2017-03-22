@@ -300,6 +300,7 @@ end
     @test @inferred(size_spatial(img)) == (3,5)
     @test @inferred(indices_spatial(img)) == (Base.OneTo(3), Base.OneTo(5))
     assert_timedim_last(img)
+    @test timeaxis(img) == Axis{:time}(0.1:0.1:0.8)
 end
 
 @testset "spatialprops" begin
