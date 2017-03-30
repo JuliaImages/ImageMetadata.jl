@@ -18,8 +18,12 @@ if isdefined(Base.Broadcast, :containertype)
         T = _broadcast_eltype(f, As...)
         shape = broadcast_indices(As...)
         Mt = imagemeta(As...)
-        length(Mt) == 1 || return ambigop(Symbol(f))
         M = Mt[1]
+        if length(Mt) > 1
+            for i = 2:length(Mt)
+                Mt[i] == M || return ambigop(Symbol(f))
+            end
+        end
         broadcast!(f, shareproperties(M, similar(data(M), T, shape)), As...)
     end
     # Select all the ImageMeta arrays
