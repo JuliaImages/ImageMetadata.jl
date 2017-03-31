@@ -80,4 +80,7 @@ Mp = M'
 Ms = squeeze(Mp, 1)
 @test Ms == M
 
+img = convert(ImageMeta{Gray{N0f16}}, [0.01164 0.01118; 0.01036 0.01187])
+@test all(1-img .== 1-img)
+
 nothing
