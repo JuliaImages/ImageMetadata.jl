@@ -65,9 +65,9 @@ end
 for op in batch2
     for CV in (:AbstractGray, :TransparentGray, :AbstractRGB, :TransparentRGB)
         @eval begin
-            ($op){CV<:$CV}(img::ImageMeta{CV}, n::$CV) =
+            ($op)(img::ImageMeta{CV}, n::$CV) where {CV<:$CV} =
                 shareproperties(img, ($op)(data(img), n))
-            ($op){CV<:$CV}(n::$CV, img::ImageMeta{CV}) =
+            ($op)(n::$CV, img::ImageMeta{CV}) where {CV<:$CV} =
                 shareproperties(img, ($op)(n, data(img)))
         end
     end
