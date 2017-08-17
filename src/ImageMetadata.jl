@@ -44,7 +44,6 @@ type ImageMeta{T,N,A<:AbstractArray} <: AbstractArray{T,N}
     properties::Dict{String,Any}
 
     function (::Type{ImageMeta{T,N,A}}){T,N,A}(data::AbstractArray, properties::Dict)
-        check_deprecated_properties(data, properties)
         new{T,N,A}(data, properties)
     end
 end
@@ -376,6 +375,5 @@ function kwargs2dict(kwargs)
 end
 
 include("operators.jl")
-include("deprecated.jl")
 
 end # module
