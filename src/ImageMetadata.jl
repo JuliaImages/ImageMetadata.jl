@@ -190,7 +190,7 @@ affect the other.
 
 See also: [`properties`](@ref).
 """
-ImageCore.data(img::ImageMeta) = img.data   # fixme when deprecation is removed from ImageCore
+ImageAxes.data(img::ImageMeta) = img.data   # fixme when deprecation is removed from ImageCore
 
 function ImageCore.permuteddimsview(A::ImageMeta, perm)
     ip = sortperm([perm...][[coords_spatial(A)...]])  # the inverse spatial permutation
@@ -235,7 +235,7 @@ end
 
 ImageAxes.timeaxis(img::ImageMetaAxis) = timeaxis(data(img))
 ImageAxes.timedim(img::ImageMetaAxis) = timedim(data(img))
-ImageCore.colordim(img::ImageMetaAxis) = colordim(data(img))
+ImageAxes.colordim(img::ImageMetaAxis) = colordim(data(img))
 
 ImageCore.pixelspacing(img::ImageMeta) = pixelspacing(data(img))
 
@@ -326,7 +326,7 @@ have been declared "spatial" and hence should be permuted when calling
 
     img["spatialproperties"] = ["spacedirections"]
 """
-ImageCore.spatialproperties(img::ImageMeta) = @get img "spatialproperties" ["spacedirections"]
+spatialproperties(img::ImageMeta) = @get img "spatialproperties" ["spacedirections"]
 
 function check_empty_spatialproperties(img)
     sp = spatialproperties(img)
