@@ -6,25 +6,40 @@ if isdefined(Base.Broadcast, :containertype)
     # Specialize the low-level broadcasting machinery for ImageMeta.
     # This make it work for all operators, rather than specializing
     # each operator individually.
-    using Base.Broadcast: _broadcast_eltype, broadcast_indices
-    Base.Broadcast._containertype(::Type{<:ImageMeta}) = ImageMeta
-    Base.Broadcast.promote_containertype(::Type{ImageMeta}, ::Type{ImageMeta}) = ImageMeta
-    Base.Broadcast.promote_containertype(::Type{Array}, ::Type{ImageMeta}) = ImageMeta
-    Base.Broadcast.promote_containertype(::Type{ImageMeta}, ::Type{Array}) = ImageMeta
-    Base.Broadcast.promote_containertype(::Type{ImageMeta}, ct) = ImageMeta
-    Base.Broadcast.promote_containertype(ct, ::Type{ImageMeta}) = ImageMeta
-    Base.Broadcast.broadcast_indices(::Type{ImageMeta}, A) = indices(A)
-    function Base.Broadcast.broadcast_c(f, ::Type{ImageMeta}, As...)
-        T = _broadcast_eltype(f, As...)
-        shape = broadcast_indices(As...)
-        Mt = imagemeta(As...)
-        M = Mt[1]
-        if length(Mt) > 1
-            for i = 2:length(Mt)
-                Mt[i] == M || return ambigop(Symbol(f))
+    if VERSION > v"0.7-"
+        Base.BroadcastStyle(::Type{<:ImageMeta}) = Broadcast.ArrayStyle{ImageMeta}()
+        function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{ImageMeta}}, ::Type{ElType}) where ElType
+            Mt = imagemeta(bc.args...)
+            M = Mt[1]
+            if length(Mt) > 1
+                for i = 2:length(Mt)
+                    Mt[i] == M || return ambigop(:Broadcast)
+                end
             end
+            # Use the properties field of img to create the output
+            ImageMeta(similar(Array{ElType}, axes(bc)), M.properties)
         end
-        broadcast!(f, shareproperties(M, similar(data(M), T, shape)), As...)
+    else
+        using Base.Broadcast: _broadcast_eltype, broadcast_indices
+        Base.Broadcast._containertype(::Type{<:ImageMeta}) = ImageMeta
+        Base.Broadcast.promote_containertype(::Type{ImageMeta}, ::Type{ImageMeta}) = ImageMeta
+        Base.Broadcast.promote_containertype(::Type{Array}, ::Type{ImageMeta}) = ImageMeta
+        Base.Broadcast.promote_containertype(::Type{ImageMeta}, ::Type{Array}) = ImageMeta
+        Base.Broadcast.promote_containertype(::Type{ImageMeta}, ct) = ImageMeta
+        Base.Broadcast.promote_containertype(ct, ::Type{ImageMeta}) = ImageMeta
+        Base.Broadcast.broadcast_indices(::Type{ImageMeta}, A) = indices(A)
+        function Base.Broadcast.broadcast_c(f, ::Type{ImageMeta}, As...)
+            T = _broadcast_eltype(f, As...)
+            shape = broadcast_indices(As...)
+            Mt = imagemeta(As...)
+            M = Mt[1]
+            if length(Mt) > 1
+                for i = 2:length(Mt)
+                    Mt[i] == M || return ambigop(Symbol(f))
+                end
+            end
+            broadcast!(f, shareproperties(M, similar(data(M), T, shape)), As...)
+        end
     end
     # Select all the ImageMeta arrays
     @inline imagemeta(As...) = _imagemeta((), As...)
