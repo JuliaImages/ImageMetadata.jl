@@ -1,4 +1,4 @@
-using ImageMetadata, FixedPointNumbers, Colors, ColorVectorSpace, Base.Test
+using ImageMetadata, FixedPointNumbers, Colors, ColorVectorSpace, Test
 
 @testset "operations" begin
     function checkmeta(A, B)
@@ -11,10 +11,10 @@ using ImageMetadata, FixedPointNumbers, Colors, ColorVectorSpace, Base.Test
         M = ImageMeta(A)
         M2 = similar(M)
         checkmeta(-M, -A)
-        checkmeta(M + zero(eltype(M)), M)
-        checkmeta(zero(eltype(M)) + M, M)
-        checkmeta(M - zero(eltype(M)), M)
-        checkmeta(zero(eltype(M)) - M, -M)
+        checkmeta(M .+ zero(eltype(M)), M)
+        checkmeta(zero(eltype(M)) .+ M, M)
+        checkmeta(M .- zero(eltype(M)), M)
+        checkmeta(zero(eltype(M)) .- M, -M)
         B = falses(size(M))
         if !(eltype(A) <: RGB)
             checkmeta(M + B, M)
@@ -39,8 +39,8 @@ using ImageMetadata, FixedPointNumbers, Colors, ColorVectorSpace, Base.Test
             checkmeta(M .- A, 0*M)
         end
         checkmeta(M*2, 2*M)
-        checkmeta(2.*M, 2*M)
-        checkmeta(M.*2, 2*M)
+        checkmeta(2 .* M, 2*M)
+        checkmeta(M .* 2, 2*M)
         checkmeta(M/2, M/2)
         checkmeta(M./2, M/2)
         checkmeta(M.*B, 0*M)
@@ -53,10 +53,10 @@ using ImageMetadata, FixedPointNumbers, Colors, ColorVectorSpace, Base.Test
         end
         B1 = trues(size(M))
         checkmeta(M./B1, M)
-        @test_throws ErrorException M./M2
+        @test_throws Union{MethodError,ErrorException} M./M2
         if !(eltype(A) <: RGB)
-            checkmeta(M + 0.0, M)
-            checkmeta(0.0 + M, M)
+            checkmeta(M .+ 0.0, M)
+            checkmeta(0.0 .+ M, M)
             checkmeta(M .+ 0.0, M)
             checkmeta(0.0 .+ M, M)
             if eltype(A) == Float64
