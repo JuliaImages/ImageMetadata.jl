@@ -26,12 +26,14 @@ batch2 = (:+, :-)
 
 (-)(img::ImageMeta) = shareproperties(img, -data(img))
 
+import Base.Broadcast: broadcasted, materialize
+
 for op in batch1
     @eval begin
-        Base.broadcast(($op),img::ImageMeta{Bool}, n::Bool) = shareproperties(img, Base.broadcast(($op),data(img), n))
-        Base.broadcast(($op),n::Bool, img::ImageMeta{Bool}) = shareproperties(img, Base.broadcast(($op),n, data(img)))
-        Base.broadcast(($op),img::ImageMeta, n::Number) = shareproperties(img, Base.broadcast(($op),data(img), n))
-        Base.broadcast(($op),n::Number, img::ImageMeta) = shareproperties(img, Base.broadcast(($op),n, data(img)))
+        broadcasted(::typeof($op),img::ImageMeta{Bool}, n::Bool) = shareproperties(img, materialize(broadcasted(($op),data(img), n)))
+        broadcasted(::typeof($op),n::Bool, img::ImageMeta{Bool}) = shareproperties(img, materialize(broadcasted(($op),n, data(img))))
+        broadcasted(::typeof($op),img::ImageMeta, n::Number) = shareproperties(img, materialize(broadcasted(($op),data(img), n)))
+        broadcasted(::typeof($op),n::Number, img::ImageMeta) = shareproperties(img, materialize(broadcasted(($op),n, data(img))))
     end
     if op !== :*
         @eval begin
