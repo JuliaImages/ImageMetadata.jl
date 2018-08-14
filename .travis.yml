@@ -4,17 +4,31 @@ os:
   - linux
   - osx
 julia:
-  - 0.6
+  - 0.7
+  - 1.0
   - nightly
+matrix:
+  allow_failures:
+    - julia: nightly
 notifications:
   email: false
-# uncomment the following lines to override the default test script
+
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia -e 'Pkg.clone(pwd()); Pkg.build("ImageMetadata"); Pkg.test("ImageMetadata"; coverage=true)'
+  - julia -e 'import Pkg; Pkg.clone(pwd()); Pkg.build("ImageMetadata")'
+  - julia --check-bounds=yes --color=yes -e 'import Pkg; Pkg.test("ImageMetadata"; coverage=true)'
+
+# control of actual deployment is in the Documenter make script
+jobs:
+  include:
+    - stage: deploy
+      julia: 0.7
+      os: linux
+      script:
+        - julia -e 'import Pkg; Pkg.clone(pwd()); Pkg.build("ImageMetadata")'
+        - julia -e 'import Pkg; Pkg.add("Documenter")'
+        - julia -e 'import ImageCore; ENV["DOCUMENTER_DEBUG"] = "true"; include(joinpath("docs","make.jl"))'
+
 after_success:
   # push coverage results to Codecov
-  - julia -e 'cd(Pkg.dir("ImageMetadata")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
-  # update the documentation
-  - julia -e 'Pkg.add("Documenter")'
-  - julia -e 'cd(Pkg.dir("ImageMetadata")); ENV["DOCUMENTER_DEBUG"] = "true"; include(joinpath("docs", "make.jl"))'
+  - julia -e 'import Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
