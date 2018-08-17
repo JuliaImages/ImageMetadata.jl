@@ -28,6 +28,7 @@ batch2 = (:+, :-)
 
 import Base.Broadcast: broadcasted, materialize
 
+@info "remove superfluous methods after checking property propagation"
 for op in batch1
     @eval begin
         broadcasted(::typeof($op),img::ImageMeta{Bool}, n::Bool) = shareproperties(img, materialize(broadcasted(($op),data(img), n)))

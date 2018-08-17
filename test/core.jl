@@ -28,7 +28,7 @@ import Dates: now
         end
         img[2] = zero(eltype(img))
         @test A[2] == zero(eltype(A))
-        img[3] = oneunit(eltype(img)) # fails for RGB{N0f8} (no method for one)
+        img[3] = oneunit(eltype(img))
         @test A[3] == oneunit(eltype(A))
         @test_throws BoundsError img[0]
         @test_throws BoundsError img[4]
@@ -104,8 +104,8 @@ import Dates: now
     Broi = B[2:3, 2:3]
     @test isa(Broi, ImageMeta)
     @test axisnames(Broi) == (:y, :x)
-#    A1, B1 = A[2:7], B[2:7] # RAS fixme
-#    @test isa(B1, ImageMeta) && A1 == B1
+    A1, B1 = A[2:7], B[2:7]
+    @test isa(B1, ImageMeta) && A1 == B1
     Broi = view(B, 2:3, 2:3)
     @test isa(Broi, ImageMeta)
     @test axisnames(Broi) == (:y, :x)

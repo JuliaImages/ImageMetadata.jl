@@ -55,8 +55,8 @@ using ImageMetadata, FixedPointNumbers, Colors, ColorVectorSpace, Test
         checkmeta(M./B1, M)
         @test_throws Union{MethodError,ErrorException} M./M2
         if !(eltype(A) <: RGB)
-            checkmeta(M .+ 0.0, M)
-            checkmeta(0.0 .+ M, M)
+            checkmeta(M .+ false, M)
+            checkmeta(false .+ M, M)
             checkmeta(M .+ 0.0, M)
             checkmeta(0.0 .+ M, M)
             if eltype(A) == Float64
