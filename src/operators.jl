@@ -26,32 +26,20 @@ _imagemeta(out) = out
 @inline _imagemeta(out, A::ImageMeta, As...) = _imagemeta((out..., A), As...)
 @inline _imagemeta(out, A, As...) = _imagemeta(out, As...)
 
-batch1 = (:+, :-, :*)
-batch2 = (:+, :-)
 
 (-)(img::ImageMeta) = shareproperties(img, -data(img))
 
-import Base.Broadcast: broadcasted, materialize
-
-for op in batch1
-    @eval begin
-        broadcasted(::typeof($op),img::ImageMeta{Bool}, n::Bool) = shareproperties(img, materialize(broadcasted(($op),data(img), n)))
-        broadcasted(::typeof($op),n::Bool, img::ImageMeta{Bool}) = shareproperties(img, materialize(broadcasted(($op),n, data(img))))
-        broadcasted(::typeof($op),img::ImageMeta, n::Number) = shareproperties(img, materialize(broadcasted(($op),data(img), n)))
-        broadcasted(::typeof($op),n::Number, img::ImageMeta) = shareproperties(img, materialize(broadcasted(($op),n, data(img))))
-    end
-    if op !== :*
-        @eval begin
-            ($op)(img::ImageMeta, B::BitArray) = shareproperties(img, ($op)(data(img), B))
-            ($op)(B::BitArray, img::ImageMeta) = shareproperties(img, ($op)(B, data(img)))
-            ($op)(img::ImageMeta, B::ImageMeta) = ambigop(Symbol($op))
-            ($op)(img::ImageMeta, B::AbstractArray) = shareproperties(img, ($op)(data(img), B))
-            ($op)(B::AbstractArray, img::ImageMeta) = shareproperties(img, ($op)(B, data(img)))
-        end
-    end
-end
+batch2 = (:+, :-)
 
 for op in batch2
+    @eval begin
+        ($op)(img::ImageMeta, B::BitArray) = shareproperties(img, ($op)(data(img), B))
+        ($op)(B::BitArray, img::ImageMeta) = shareproperties(img, ($op)(B, data(img)))
+        ($op)(img::ImageMeta, B::ImageMeta) = ambigop(Symbol($op))
+        ($op)(img::ImageMeta, B::AbstractArray) = shareproperties(img, ($op)(data(img), B))
+        ($op)(B::AbstractArray, img::ImageMeta) = shareproperties(img, ($op)(B, data(img)))
+    end
+
     for CV in (:AbstractGray, :TransparentGray, :AbstractRGB, :TransparentRGB)
         @eval begin
             ($op)(img::ImageMeta{CV}, n::$CV) where {CV<:$CV} =
