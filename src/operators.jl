@@ -6,14 +6,19 @@ using ColorVectorSpace: AbstractGray, TransparentGray, TransparentRGB
 Base.BroadcastStyle(::Type{<:ImageMeta}) = Broadcast.ArrayStyle{ImageMeta}()
 function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{ImageMeta}}, ::Type{ElType}) where ElType
     Mt = imagemeta(bc.args...)
-    M = Mt[1]
-    if length(Mt) > 1
-        for i = 2:length(Mt)
-            Mt[i] == M || return ambigop(:Broadcast)
+    if length(Mt) > 0
+        M = Mt[1]
+        if length(Mt) > 1
+            for i = 2:length(Mt)
+                Mt[i] == M || return ambigop(:Broadcast)
+            end
         end
+        # Use the properties field of img to create the output
+        ret = ImageMeta(similar(Array{ElType}, axes(bc)), M.properties)
+    else
+        ret = ImageMeta(similar(Array{ElType}, axes(bc)))
     end
-    # Use the properties field of img to create the output
-    ImageMeta(similar(Array{ElType}, axes(bc)), M.properties)
+    ret
 end
 # Select all the ImageMeta arrays
 @inline imagemeta(As...) = _imagemeta((), As...)
@@ -28,7 +33,6 @@ batch2 = (:+, :-)
 
 import Base.Broadcast: broadcasted, materialize
 
-@info "remove superfluous methods after checking property propagation"
 for op in batch1
     @eval begin
         broadcasted(::typeof($op),img::ImageMeta{Bool}, n::Bool) = shareproperties(img, materialize(broadcasted(($op),data(img), n)))

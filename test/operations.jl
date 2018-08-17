@@ -4,6 +4,9 @@ using ImageMetadata, FixedPointNumbers, Colors, ColorVectorSpace, Test
     function checkmeta(A, B)
         @test isa(A, ImageMeta)
         @test A == B
+        if isa(B, ImageMeta)
+            @test properties(A) == properties(B)
+        end
         nothing
     end
     for A in (rand(Bool, 3, 5), rand(3, 5),
@@ -19,6 +22,7 @@ using ImageMetadata, FixedPointNumbers, Colors, ColorVectorSpace, Test
         if !(eltype(A) <: RGB)
             checkmeta(M + B, M)
             checkmeta(M .+ B, M)
+            checkmeta((B .+ M .+ B), M)
             checkmeta(B + M, M)
             checkmeta(B .+ M, M)
             @test_throws ErrorException M + M2
@@ -37,6 +41,8 @@ using ImageMetadata, FixedPointNumbers, Colors, ColorVectorSpace, Test
             checkmeta(A .- M, 0*M)
             checkmeta(M - A, 0*M)
             checkmeta(M .- A, 0*M)
+            checkmeta(A .- M .+ A, M)
+            checkmeta(M .- A .+ M, M)
         end
         checkmeta(M*2, 2*M)
         checkmeta(2 .* M, 2*M)
@@ -77,10 +83,12 @@ M = ImageMeta([1,2,3,4])
 @test maximum(M) == 4
 Mp = M'
 @test ndims(Mp) == 2
-Ms = squeeze(Mp, 1)
+Ms = dropdims(Mp, dims=1)
 @test Ms == M
 
 img = convert(ImageMeta{Gray{N0f16}}, [0.01164 0.01118; 0.01036 0.01187])
-@test all(1-img .== 1-img)
+@test all((1 .- img) .== (1 .- img))
+@info "Two Warnings expected for test"
+@test all(1 - img .== 1 - img)
 
 nothing
