@@ -1,5 +1,3 @@
-__precompile__()
-
 module ImageMetadata
 
 # The order here is designed to avoid an ambiguity warning in convert,
@@ -8,6 +6,7 @@ using ImageAxes
 using ImageCore, Colors, FixedPointNumbers
 using ColorVectorSpace   # for overriding math operations with Gray/RGB
 using Compat
+import AxisArrays
 
 import Base: +, .+, -, .-, *, .*, /, ./, .^, .<, .>, .==
 import Base: +, -, *, /
@@ -164,9 +163,16 @@ Base.delete!(img::ImageMeta, propname::AbstractString) = delete!(img.properties,
 
 # Iteration
 # Defer to the array object in case it has special iteration defined
+if isdefined(Base, :LegacyIterationCompat)
+#    Base.iterate(img::ImageMeta{Array{T,N}}, s=1) where {T,N} = iterate(data(img), s)
+#    Base.iterate(img::ImageMeta, s=(eachindex(img),)) = iterate(data(img), s)
+    Base.iterate(img::ImageMeta) = Base.iterate(data(img))
+    Base.iterate(img::ImageMeta, s) = Base.iterate(data(img), s)
+else
 Base.start(img::ImageMeta) = start(data(img))
 Base.next(img::ImageMeta, s) = next(data(img), s)
 Base.done(img::ImageMeta, s) = done(data(img), s)
+end
 
 # Show
 const emptyset = Set()
@@ -197,12 +203,12 @@ function ImageCore.permuteddimsview(A::ImageMeta, perm)
     permutedims_props!(copyproperties(A, permuteddimsview(A.data, perm)), ip)
 end
 ImageCore.channelview(A::ImageMeta) = shareproperties(A, channelview(A.data))
-ImageCore.colorview(::Type{C}, A::ImageMeta) where {C<:Colorant} = shareproperties(A, colorview(C, A.data))
+ImageCore.colorview(::Type{C}, A::ImageMeta{T,N}) where {C<:Colorant,T,N} = shareproperties(A, colorview(C, A.data))
 ImageCore.rawview(A::ImageMeta{T}) where {T<:Real} = shareproperties(A, rawview(A.data))
 ImageCore.normedview(::Type{T}, A::ImageMeta{S}) where {T<:FixedPoint,S<:Unsigned} = shareproperties(A, normedview(T, A.data))
 
 # AxisArrays functions
-AxisArrays.axes(img::ImageMetaAxis) = axes(img.data)
+AxisArrays.axes(img::ImageMetaAxis) = AxisArrays.axes(img.data)
 AxisArrays.axisdim(img::ImageMetaAxis, ax) = axisdim(img.data, ax)
 AxisArrays.axisnames(img::ImageMetaAxis) = axisnames(img.data)
 AxisArrays.axisvalues(img::ImageMetaAxis) = axisvalues(img.data)
@@ -311,8 +317,8 @@ function permutedims(img::ImageMeta, perm)
     permutedims_props!(copyproperties(img, permutedims(img.data, perm)), ip)
 end
 
-Base.ctranspose(img::ImageMeta{T,2}) where {T<:Real} = permutedims(img, (2,1))
-function Base.ctranspose(img::ImageMeta{T,1}) where T<:Real
+Base.adjoint(img::ImageMeta{T,2}) where {T<:Real} = permutedims(img, (2,1))
+function Base.adjoint(img::ImageMeta{T,1}) where T<:Real
     check_empty_spatialproperties(img)
     copyproperties(img, img.data')
 end
@@ -346,7 +352,7 @@ function showdictlines(io::IO, dict::Dict, suppress::Set)
         end
         if !in(k, suppress)
             print(io, "\n    ", k, ": ")
-            print(IOContext(io, compact=true), v)
+            print(IOContext(io, :compact => true), v)
         else
             print(io, "\n    ", k, ": <suppressed>")
         end

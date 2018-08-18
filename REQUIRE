@@ -1,8 +1,9 @@
-julia 0.6
+julia 0.7
 IndirectArrays
 FixedPointNumbers 0.3.0
 Colors
 ColorVectorSpace 0.1.11
 ImageCore
 ImageAxes
+AxisArrays
 Compat 0.19
