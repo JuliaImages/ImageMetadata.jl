@@ -175,8 +175,7 @@ end
 Base.show(io::IO, img::ImageMeta) = showim(io, img)
 Base.show(io::IO, ::MIME"text/plain", img::ImageMeta) = showim(io, img)
 
-function ImageCore.reinterpret(::Type{T}, img::ImageMeta{T2,N,A}) where {T,T2,N,A}
-    (A <: Array) || error("reinterpret method not defined for $(typeof(img)). Consider a MappedArray instead.")
+function Base.reinterpret(::Type{T}, img::ImageMeta) where {T}
     shareproperties(img, reinterpret(T, img.data))
 end
 

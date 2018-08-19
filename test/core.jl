@@ -130,10 +130,15 @@ end
     Mr = reinterpretc(Gray, M)
     @test eltype(Mr) == Gray{Float32}
     @test Mr["meta"] = true
-    # Ensure that it never gets defined for the un-reinterpretable
+    # Ensure that it gets defined for the formerly un-reinterpretable
+    A = zeros(Float32, 4, 5)
     M = ImageMeta(view(A, 1:2:3, 1:4), meta=true)
-    @test_throws ErrorException reinterpretc(Gray, M)
-    @test_throws ErrorException reinterpretc(Gray{Float32}, M)
+    Mr = reinterpretc(Gray, M)
+    Mr = reinterpretc(Gray{Float32}, M)
+    @test eltype(Mr) == Gray{Float32}
+    @test Mr["meta"] = true
+    Mr[:] .= Gray{Float32}(0.5)
+    @test all(A[1:2:3,1:4] .== 0.5)
 end
 
 @testset "copy/similar" begin
