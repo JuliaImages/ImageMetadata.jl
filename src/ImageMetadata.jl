@@ -5,7 +5,6 @@ module ImageMetadata
 using ImageAxes
 using ImageCore, Colors, FixedPointNumbers
 using ColorVectorSpace   # for overriding math operations with Gray/RGB
-using Compat
 import AxisArrays
 
 import Base: +, -, *, /

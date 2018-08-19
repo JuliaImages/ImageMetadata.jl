@@ -3,7 +3,6 @@ IndirectArrays
 FixedPointNumbers 0.3.0
 Colors
 ColorVectorSpace 0.1.11
-ImageCore
+ImageCore 0.7
 ImageAxes
-AxisArrays
-Compat 0.19
+AxisArrays 0.3
