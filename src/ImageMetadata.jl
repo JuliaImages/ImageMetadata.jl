@@ -8,7 +8,6 @@ using ColorVectorSpace   # for overriding math operations with Gray/RGB
 using Compat
 import AxisArrays
 
-import Base: +, .+, -, .-, *, .*, /, ./, .^, .<, .>, .==
 import Base: +, -, *, /
 import Base: permutedims
 
@@ -163,16 +162,8 @@ Base.delete!(img::ImageMeta, propname::AbstractString) = delete!(img.properties,
 
 # Iteration
 # Defer to the array object in case it has special iteration defined
-if isdefined(Base, :LegacyIterationCompat)
-#    Base.iterate(img::ImageMeta{Array{T,N}}, s=1) where {T,N} = iterate(data(img), s)
-#    Base.iterate(img::ImageMeta, s=(eachindex(img),)) = iterate(data(img), s)
-    Base.iterate(img::ImageMeta) = Base.iterate(data(img))
-    Base.iterate(img::ImageMeta, s) = Base.iterate(data(img), s)
-else
-Base.start(img::ImageMeta) = start(data(img))
-Base.next(img::ImageMeta, s) = next(data(img), s)
-Base.done(img::ImageMeta, s) = done(data(img), s)
-end
+Base.iterate(img::ImageMeta) = Base.iterate(data(img))
+Base.iterate(img::ImageMeta, s) = Base.iterate(data(img), s)
 
 # Show
 const emptyset = Set()
@@ -184,8 +175,10 @@ end
 Base.show(io::IO, img::ImageMeta) = showim(io, img)
 Base.show(io::IO, ::MIME"text/plain", img::ImageMeta) = showim(io, img)
 
-Base.reinterpret(::Type{T}, img::ImageMetaArray) where {T} = shareproperties(img, reinterpret(T, img.data))
-Base.reinterpret(::Type{T}, img::ImageMeta) where {T} = error("reinterpret method not defined for $(typeof(img)). Consider a MappedArray instead.")
+function Base.reinterpret(::Type{T}, img::ImageMeta) where {T}
+    shareproperties(img, reinterpret(T, img.data))
+end
+
 
 """
     data(img::ImageMeta) -> array
@@ -204,6 +197,7 @@ function ImageCore.permuteddimsview(A::ImageMeta, perm)
 end
 ImageCore.channelview(A::ImageMeta) = shareproperties(A, channelview(A.data))
 ImageCore.colorview(::Type{C}, A::ImageMeta{T,N}) where {C<:Colorant,T,N} = shareproperties(A, colorview(C, A.data))
+ImageCore.colorview(::Type{ARGB32}, A::ImageMeta{T,N}) where {T,N} = shareproperties(A, colorview(ARGB32, A.data))
 ImageCore.rawview(A::ImageMeta{T}) where {T<:Real} = shareproperties(A, rawview(A.data))
 ImageCore.normedview(::Type{T}, A::ImageMeta{S}) where {T<:FixedPoint,S<:Unsigned} = shareproperties(A, normedview(T, A.data))
 
@@ -317,7 +311,14 @@ function permutedims(img::ImageMeta, perm)
     permutedims_props!(copyproperties(img, permutedims(img.data, perm)), ip)
 end
 
-Base.adjoint(img::ImageMeta{T,2}) where {T<:Real} = permutedims(img, (2,1))
+"""
+Note: `adjoint` does not recurse into ImageMeta properties.
+"""
+function Base.adjoint(img::ImageMeta{T,2}) where {T<:Real}
+    ip = sortperm([2,1][[coords_spatial(img)...]])
+    permutedims_props!(copyproperties(img, adjoint(img.data)), ip)
+end
+
 function Base.adjoint(img::ImageMeta{T,1}) where T<:Real
     check_empty_spatialproperties(img)
     copyproperties(img, img.data')
