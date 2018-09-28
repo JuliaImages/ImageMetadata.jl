@@ -90,11 +90,16 @@ for AType in (ImageMeta, ImageMetaAxis)
 end
 
 @inline function Base.getindex(img::ImageMetaAxis, ax::Axis, I...)
-    copyproperties(img, img.data[ax, I...])
+    result = img.data[ax, I...]
+    maybe_wrap(img, result)
 end
 @inline function Base.getindex(img::ImageMetaAxis, i::Union{Integer,AbstractVector,Colon}, I...)
-    copyproperties(img, img.data[i, I...])
+    result = img.data[i, I...]
+    maybe_wrap(img, result)
 end
+maybe_wrap(img::ImageMeta{T}, result::T) where T = result
+maybe_wrap(img::ImageMeta{T}, result::AbstractArray{T}) where T = copyproperties(img, result)
+
 
 @inline function Base.setindex!(img::ImageMetaAxis, val, ax::Axis, I...)
     setindex!(img.data, val, ax, I...)
