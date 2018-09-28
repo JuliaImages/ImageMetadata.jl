@@ -358,4 +358,13 @@ end
     @inferred cv[1,1,1]
 end
 
+@testset "AxisArray_CartesianIndex" begin
+    M = reshape([1,2,3,4], 2,2)
+    M = AxisArray(M)
+    img = ImageMeta(M)
+    @test 1 == img[1, CartesianIndex(1)] #Int and cartesianindex
+    @test maximum(img,dims=2) == reshape([3,4],2,1)
+    @test mean(img,dims=1) == reshape([1.5,3.5], 1,2)
+end
+
 nothing
