@@ -331,4 +331,14 @@ end
     @test_throws ErrorException M'
 end
 
+@testset "AxisArray_CartesianIndex" begin
+    M = reshape([1,2,3,4], 2,2)
+    M = AxisArray(M)
+    img = ImageMeta(M)
+    @test 1 == img[1, CartesianIndex(1)] #Int and cartesianindex
+    @test maximum(img,2) == reshape([3,4],2,1)
+    @test mean(img,1) == reshape([1.5,3.5], 1,2)
+end
+
+
 nothing
