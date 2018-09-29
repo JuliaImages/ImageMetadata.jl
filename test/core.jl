@@ -1,7 +1,7 @@
 using FixedPointNumbers, Colors, ColorVectorSpace, SimpleTraits, ImageAxes, ImageMetadata, AxisArrays
-using Compat
 using Test
 import Dates: now
+using Unitful: m
 
 @testset "indexing" begin
     # 1d images
@@ -89,11 +89,14 @@ import Dates: now
     end
     # Test bounds-checking removal by @inbounds
     if Base.JLOptions().check_bounds != 1 && Base.JLOptions().can_inline == 1
-        a = zeros(3)
-        sizehint!(a, 10)  # make sure we don't cause a segfault
+        set5!(x) = @inbounds x[5] = 1.234
+        get5(x) = @inbounds x[5]
+        aa = zeros(3)
+        sizehint!(aa, 10)  # make sure we don't cause a segfault
+        a = ImageMeta(aa)
         @test_throws BoundsError a[5]
-        @inbounds a[5] = 1.234
-        @inbounds val = a[5]
+        set5!(a)
+        val = get5(a)
         @test val == 1.234
         a = zeros(3,5)
     end
@@ -338,6 +341,21 @@ end
                   spatialproperties=["vector"],
                   vector=[1])
     @test_throws ErrorException M'
+end
+
+@testset "Inference" begin
+    # Heavily-nested types tax Julia's inference capabilities
+    a = rand(N2f14, 3, 5, 2)
+    a1 = a[1,1,1]
+    aa = AxisArray(a, Axis{:y}(0:2), Axis{:x}(0:4), Axis{:z}(0:1))
+    cv = colorview(RGB, aa, zeroarray, aa)
+    @test @inferred(cv[1,1,1]) == RGB(a1, zero(a1), a1)
+    au = AxisArray(a, Axis{:y}(0m:1m:2m), Axis{:x}(0m:1m:4m), Axis{:z}(0m:1m:1m))
+    cv = colorview(RGB, au, zeroarray, au)
+    @test @inferred(cv[1,1,1]) == RGB(a1, zero(a1), a1)
+    am = ImageMeta(au)
+    cv = colorview(RGB, am, zeroarray, am)
+    @inferred cv[1,1,1]
 end
 
 nothing
