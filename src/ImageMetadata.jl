@@ -30,7 +30,7 @@ export
 `ImageMeta` is an AbstractArray that can have metadata, stored in a dictionary.
 
 Construct an image with `ImageMeta(A, props)` (for a properties dictionary
-`props`), or with `Image(A, prop1=val1, prop2=val2, ...)`.
+`props`), or with `ImageMeta(A, prop1=val1, prop2=val2, ...)`.
 """
 mutable struct ImageMeta{T,N,A<:AbstractArray} <: AbstractArray{T,N}
     data::A
@@ -310,9 +310,7 @@ function permutedims(img::ImageMeta, perm)
     permutedims_props!(copyproperties(img, permutedims(img.data, perm)), ip)
 end
 
-"""
-Note: `adjoint` does not recurse into ImageMeta properties.
-"""
+# Note: `adjoint` does not recurse into ImageMeta properties.
 function Base.adjoint(img::ImageMeta{T,2}) where {T<:Real}
     ip = sortperm([2,1][[coords_spatial(img)...]])
     permutedims_props!(copyproperties(img, adjoint(img.data)), ip)

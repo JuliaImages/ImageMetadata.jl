@@ -1,12 +1,12 @@
 using Documenter, ImageMetadata
 
 makedocs(modules  = [ImageMetadata],
-         format   = Documenter.Formats.HTML,
+         format   = :html,
          sitename = "ImageMetadata",
          pages    = ["intro.md", "reference.md"])
 
 deploydocs(repo   = "github.com/JuliaImages/ImageMetadata.jl.git",
-           julia  = "0.5",
+           julia  = "1.0",
            target = "build",
            deps   = nothing,
            make   = nothing)
