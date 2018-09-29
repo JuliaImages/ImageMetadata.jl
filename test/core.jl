@@ -1,7 +1,7 @@
 using FixedPointNumbers, Colors, ColorVectorSpace, SimpleTraits, ImageAxes, ImageMetadata, AxisArrays
-using Compat
 using Test
 import Dates: now
+using Unitful: m
 
 @testset "indexing" begin
     # 1d images
@@ -338,6 +338,21 @@ end
                   spatialproperties=["vector"],
                   vector=[1])
     @test_throws ErrorException M'
+end
+
+@testset "Inference" begin
+    # Heavily-nested types tax Julia's inference capabilities
+    a = rand(N2f14, 3, 5, 2)
+    a1 = a[1,1,1]
+    aa = AxisArray(a, Axis{:y}(0:2), Axis{:x}(0:4), Axis{:z}(0:1))
+    cv = colorview(RGB, aa, zeroarray, aa)
+    @test @inferred(cv[1,1,1]) == RGB(a1, zero(a1), a1)
+    au = AxisArray(a, Axis{:y}(0m:1m:2m), Axis{:x}(0m:1m:4m), Axis{:z}(0m:1m:1m))
+    cv = colorview(RGB, au, zeroarray, au)
+    @test @inferred(cv[1,1,1]) == RGB(a1, zero(a1), a1)
+    am = ImageMeta(au)
+    cv = colorview(RGB, am, zeroarray, am)
+    @inferred cv[1,1,1]
 end
 
 nothing
