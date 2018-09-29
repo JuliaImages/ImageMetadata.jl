@@ -89,11 +89,14 @@ using Unitful: m
     end
     # Test bounds-checking removal by @inbounds
     if Base.JLOptions().check_bounds != 1 && Base.JLOptions().can_inline == 1
-        a = zeros(3)
-        sizehint!(a, 10)  # make sure we don't cause a segfault
+        set5!(x) = @inbounds x[5] = 1.234
+        get5(x) = @inbounds x[5]
+        aa = zeros(3)
+        sizehint!(aa, 10)  # make sure we don't cause a segfault
+        a = ImageMeta(aa)
         @test_throws BoundsError a[5]
-        @inbounds a[5] = 1.234
-        @inbounds val = a[5]
+        set5!(a)
+        val = get5(a)
         @test val == 1.234
         a = zeros(3,5)
     end
