@@ -27,8 +27,8 @@ using Base.Test
         end
         img[2] = zero(eltype(img))
         @test A[2] == zero(eltype(A))
-        img[3] = one(eltype(img))
-        @test A[3] == one(eltype(A))
+        img[3] = oneunit(eltype(img))
+        @test A[3] == oneunit(eltype(A))
         @test_throws BoundsError img[0]
         @test_throws BoundsError img[4]
         @test img["prop1"] == 1
@@ -65,8 +65,8 @@ using Base.Test
         if !isa(A, typeof(reshape(1:15, 3, 5)))
             img[2,3] = zero(eltype(img))
             @test A[2,3] == zero(eltype(A))
-            img[4] = one(eltype(img))
-            @test A[4] == one(eltype(A))
+            img[4] = oneunit(eltype(img))
+            @test A[4] == oneunit(eltype(A))
         end
         @test_throws BoundsError img[0,0]
         @test_throws BoundsError img[4,1]
