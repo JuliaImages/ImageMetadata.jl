@@ -10,7 +10,7 @@ subject, etc. This metadata is stored as a dictionary, and the
 You typically create an `ImageMeta` using keyword arguments:
 
 ```julia
-julia> using Colors, ImageMetadata
+julia> using Colors, ImageMetadata, Dates
 
 julia> img = ImageMeta(fill(RGB(1,0,0), 3, 2), date=Date(2016, 7, 31), time="high noon")
 RGB ImageMeta with:
@@ -45,7 +45,7 @@ julia> img["time"] = "evening"
 
 julia> img
 RGB ImageMeta with:
-  data: 3×2 Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},2}
+  data: 3×2 Array{RGB{N0f8},2} with eltype RGB{FixedPointNumbers.Normed{UInt8,8}}
   properties:
     time: evening
     date: 2016-07-31
@@ -55,7 +55,7 @@ You can extract the data matrix with `data(img)`:
 
 ```julia
 julia> data(img)
-3×2 Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},2}:
+3×2 Array{RGB{N0f8},2} with eltype RGB{FixedPointNumbers.Normed{UInt8,8}}:
  RGB{N0f8}(1.0,0.0,0.0)  RGB{N0f8}(1.0,0.0,0.0)
  RGB{N0f8}(1.0,0.0,0.0)  RGB{N0f8}(1.0,0.0,0.0)
  RGB{N0f8}(1.0,0.0,0.0)  RGB{N0f8}(1.0,0.0,0.0)
@@ -84,7 +84,7 @@ When indexing over an extended area, `img[i,j,...]` returns an `ImageMeta`:
 ```julia
 julia> c = img[1:2, 1:2]
 RGB ImageMeta with:
-  data: 2×2 Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},2}
+  data: 2×2 Array{RGB{N0f8},2} with eltype RGB{FixedPointNumbers.Normed{UInt8,8}}
   properties:
     time: high noon
     date: 2016-07-31
@@ -95,7 +95,7 @@ This copies both the data (just the relevant portions) and the properties dictio
 ```julia
 julia> v = view(img, 1:2, 1:2)
 RGB ImageMeta with:
-  data: 2×2 SubArray{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},2,Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},2},Tuple{UnitRange{Int64},UnitRange{Int64}},false}
+  data: 2×2 view(::Array{RGB{N0f8},2}, 1:2, 1:2) with eltype RGB{FixedPointNumbers.Normed{UInt8,8}}
   properties:
     time: high noon
     date: 2016-07-31
@@ -129,26 +129,26 @@ using `"spatialproperties"`:
 julia> using ImageMetadata
 
 julia> A = reshape(1:15, 3, 5)
-3×5 Base.ReshapedArray{Int64,2,UnitRange{Int64},Tuple{}}:
+3×5 reshape(::UnitRange{Int64}, 3, 5) with eltype Int64:
  1  4  7  10  13
  2  5  8  11  14
  3  6  9  12  15
 
-julia> img = ImageMeta(A, spatialproperties=Set(["maxsum"]), maxsum=[maximum(sum(A,1)), maximum(sum(A,2))])
+julia> img = ImageMeta(A, spatialproperties=Set(["maxsum"]), maxsum=[maximum(sum(A,dims=1)), maximum(sum(A,dims=2))])
 Int64 ImageMeta with:
-  data: 3×5 Base.ReshapedArray{Int64,2,UnitRange{Int64},Tuple{}}
+  data: 3×5 reshape(::UnitRange{Int64}, 3, 5) with eltype Int64
   properties:
-    maxsum: [42,45]
-    spatialproperties: Set(String["maxsum"])
+    maxsum: [42, 45]
+    spatialproperties: Set(["maxsum"])
 
 julia> imgp = permutedims(img, (2,1))
 Int64 ImageMeta with:
   data: 5×3 Array{Int64,2}
   properties:
-    maxsum: [45,42]
-    spatialproperties: Set(String["maxsum"])
+    maxsum: [45, 42]
+    spatialproperties: Set(["maxsum"])
 
-julia> maximum(sum(imgp,1))
+julia> maximum(sum(imgp,dims=1))
 45
 ```
 
