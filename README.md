@@ -13,5 +13,4 @@ image.
 
 Read the documentation here:
 
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://JuliaImages.github.io/ImageMetadata.jl/stable/intro.html)
-[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://JuliaImages.github.io/ImageMetadata.jl/latest/intro.html)
+[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://juliaimages.github.io/latest/imagemetadata.html)
