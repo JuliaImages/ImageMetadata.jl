@@ -18,17 +18,6 @@ script:
   - julia -e 'import Pkg; Pkg.clone(pwd()); Pkg.build("ImageMetadata")'
   - julia --check-bounds=yes --color=yes -e 'import Pkg; Pkg.test("ImageMetadata"; coverage=true)'
 
-# control of actual deployment is in the Documenter make script
-jobs:
-  include:
-    - stage: deploy
-      julia: 1.0
-      os: linux
-      script:
-        - julia -e 'import Pkg; Pkg.clone(pwd()); Pkg.build("ImageMetadata")'
-        - julia -e 'import Pkg; Pkg.add("Documenter")'
-        - julia -e 'import ImageMetadata; ENV["DOCUMENTER_DEBUG"] = "true"; include(joinpath("docs","make.jl"))'
-
 after_success:
   # push coverage results to Codecov
   - julia -e 'import Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
