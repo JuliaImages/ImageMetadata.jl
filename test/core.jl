@@ -264,6 +264,7 @@ end
 @testset "meta-axes" begin
     A = AxisArray(rand(3,5), :y, :x)
     M = ImageMeta(A)
+    @test AxisArrays.HasAxes(M) == AxisArrays.HasAxes{true}()
     @test AxisArrays.axes(M) == (Axis{:y}(1:3), Axis{:x}(1:5))
     @test axisdim(M, Axis{:y}) == 1
     @test axisdim(M, Axis{:x}) == 2

@@ -52,6 +52,8 @@ datatype(::Type{ImageMeta{T,N,A}}) where {T,N,A<:AbstractArray} = A
 
 Base.IndexStyle(::Type{M}) where {M<:ImageMeta} = IndexStyle(datatype(M))
 
+AxisArrays.HasAxes(A::ImageMetaAxis) = AxisArrays.HasAxes{true}()
+
 # getindex and setindex!
 for AType in (ImageMeta, ImageMetaAxis)
     @eval begin
