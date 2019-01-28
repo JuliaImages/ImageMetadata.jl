@@ -32,15 +32,15 @@ export
 Construct an image with `ImageMeta(A, props)` (for a properties dictionary
 `props`), or with `ImageMeta(A, prop1=val1, prop2=val2, ...)`.
 """
-mutable struct ImageMeta{T,N,A<:AbstractArray} <: AbstractArray{T,N}
+mutable struct ImageMeta{T,N,A<:AbstractArray,P<:AbstractDict{String,Any}} <: AbstractArray{T,N}
     data::A
-    properties::Dict{String,Any}
+    properties::P
 
-    function ImageMeta{T,N,A}(data::AbstractArray, properties::Dict) where {T,N,A}
-        new{T,N,A}(data, properties)
+    function ImageMeta{T,N,A,P}(data::AbstractArray, properties::P) where {T,N,A,P}
+        new{T,N,A,P}(data, properties)
     end
 end
-ImageMeta(data::AbstractArray{T,N}, props::Dict) where {T,N} = ImageMeta{T,N,typeof(data)}(data,props)
+ImageMeta(data::AbstractArray{T,N}, props::AbstractDict{String,Any}) where {T,N} = ImageMeta{T,N,typeof(data),typeof(props)}(data,props)
 ImageMeta(data::AbstractArray; kwargs...) = ImageMeta(data, kwargs2dict(kwargs))
 
 const ImageMetaArray{T,N,A<:Array} = ImageMeta{T,N,A}
@@ -48,7 +48,7 @@ const ImageMetaAxis{T,N,A<:AxisArray} = ImageMeta{T,N,A}
 
 Base.size(A::ImageMeta) = size(A.data)
 
-datatype(::Type{ImageMeta{T,N,A}}) where {T,N,A<:AbstractArray} = A
+datatype(::Type{ImageMeta{T,N,A,P}}) where {T,N,A<:AbstractArray,P} = A
 
 Base.IndexStyle(::Type{M}) where {M<:ImageMeta} = IndexStyle(datatype(M))
 
