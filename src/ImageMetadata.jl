@@ -231,17 +231,25 @@ Base.get(img::ImageMeta, k::AbstractString, default) = get(img.properties, k, de
 
 # So that defaults don't have to be evaluated unless they are needed,
 # we also define a @get macro (thanks Toivo Hennington):
+struct IMNothing end   # to avoid confusion in the case where dict[key] === nothing
 macro get(img, k, default)
     quote
         img, k = $(esc(img)), $(esc(k))
-        if isa(img.properties, Dict)
-            index = Base.ht_keyindex(img.properties, k)
-            (index > 0) ? img.properties.vals[index] : $(esc(default))
-        else
-            haskey(img.properties, k) ? img.properties[k] : $(esc(default))
-        end
+        val = get(img.properties, k, IMNothing())
+        return isa(val, IMNothing) ? $(esc(default)) : val
     end
 end
+#macro get(img, k, default)
+#    quote
+#        img, k = $(esc(img)), $(esc(k))
+#        if isa(img.properties, Dict)
+#            index = Base.ht_keyindex(img.properties, k)
+#            (index > 0) ? img.properties.vals[index] : $(esc(default))
+#        else
+#            haskey(img.properties, k) ? img.properties[k] : $(esc(default))
+#        end
+#    end
+#end
 
 ImageAxes.timeaxis(img::ImageMetaAxis) = timeaxis(data(img))
 ImageAxes.timedim(img::ImageMetaAxis) = timedim(data(img))
