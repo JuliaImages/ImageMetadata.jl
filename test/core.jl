@@ -368,4 +368,13 @@ end
     @test mean(img,dims=1) == reshape([1.5,3.5], 1,2)
 end
 
+@testset "AbstractDicts" begin
+    img = ImageMeta(AxisArray(rand(3,5,8),
+                              Axis{:x}(1:3),
+                              Axis{:y}(1:5),
+                              Axis{:time}(0.1:0.1:0.8)),
+                    IdDict{String,Any}("pixelspacing" => (1,1)))
+    @test @inferred(pixelspacing(img)) === (1,1)
+end
+
 nothing

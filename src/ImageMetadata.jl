@@ -234,8 +234,12 @@ Base.get(img::ImageMeta, k::AbstractString, default) = get(img.properties, k, de
 macro get(img, k, default)
     quote
         img, k = $(esc(img)), $(esc(k))
-        index = Base.ht_keyindex(img.properties, k)
-        (index > 0) ? img.properties.vals[index] : $(esc(default))
+        if isa(img.properties, Dict)
+            index = Base.ht_keyindex(img.properties, k)
+            (index > 0) ? img.properties.vals[index] : $(esc(default))
+        else
+            haskey(img.properties, k) ? img.properties[k] : $(esc(default))
+        end
     end
 end
 
@@ -350,7 +354,7 @@ function check_empty_spatialproperties(img)
 end
 
 #### Low-level utilities ####
-function showdictlines(io::IO, dict::Dict, suppress::Set)
+function showdictlines(io::IO, dict::AbstractDict, suppress::Set)
     for (k, v) in dict
         if k == "suppress"
             continue
@@ -363,7 +367,7 @@ function showdictlines(io::IO, dict::Dict, suppress::Set)
         end
     end
 end
-showdictlines(io::IO, dict::Dict, prop::String) = showdictlines(io, dict, Set([prop]))
+showdictlines(io::IO, dict::AbstractDict, prop::String) = showdictlines(io, dict, Set([prop]))
 
 # printdictval(io::IO, v) = print(io, v)
 # function printdictval(io::IO, v::Vector)
