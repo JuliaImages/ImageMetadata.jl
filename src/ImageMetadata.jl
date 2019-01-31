@@ -239,17 +239,6 @@ macro get(img, k, default)
         return isa(val, IMNothing) ? $(esc(default)) : val
     end
 end
-#macro get(img, k, default)
-#    quote
-#        img, k = $(esc(img)), $(esc(k))
-#        if isa(img.properties, Dict)
-#            index = Base.ht_keyindex(img.properties, k)
-#            (index > 0) ? img.properties.vals[index] : $(esc(default))
-#        else
-#            haskey(img.properties, k) ? img.properties[k] : $(esc(default))
-#        end
-#    end
-#end
 
 ImageAxes.timeaxis(img::ImageMetaAxis) = timeaxis(data(img))
 ImageAxes.timedim(img::ImageMetaAxis) = timedim(data(img))
