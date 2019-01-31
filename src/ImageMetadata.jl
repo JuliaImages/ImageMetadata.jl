@@ -32,15 +32,15 @@ export
 Construct an image with `ImageMeta(A, props)` (for a properties dictionary
 `props`), or with `ImageMeta(A, prop1=val1, prop2=val2, ...)`.
 """
-mutable struct ImageMeta{T,N,A<:AbstractArray} <: AbstractArray{T,N}
+mutable struct ImageMeta{T,N,A<:AbstractArray,P<:AbstractDict{String,Any}} <: AbstractArray{T,N}
     data::A
-    properties::Dict{String,Any}
+    properties::P
 
-    function ImageMeta{T,N,A}(data::AbstractArray, properties::Dict) where {T,N,A}
-        new{T,N,A}(data, properties)
+    function ImageMeta{T,N,A,P}(data::AbstractArray, properties::P) where {T,N,A,P}
+        new{T,N,A,P}(data, properties)
     end
 end
-ImageMeta(data::AbstractArray{T,N}, props::Dict) where {T,N} = ImageMeta{T,N,typeof(data)}(data,props)
+ImageMeta(data::AbstractArray{T,N}, props::AbstractDict{String,Any}) where {T,N} = ImageMeta{T,N,typeof(data),typeof(props)}(data,props)
 ImageMeta(data::AbstractArray; kwargs...) = ImageMeta(data, kwargs2dict(kwargs))
 
 const ImageMetaArray{T,N,A<:Array} = ImageMeta{T,N,A}
@@ -48,7 +48,7 @@ const ImageMetaAxis{T,N,A<:AxisArray} = ImageMeta{T,N,A}
 
 Base.size(A::ImageMeta) = size(A.data)
 
-datatype(::Type{ImageMeta{T,N,A}}) where {T,N,A<:AbstractArray} = A
+datatype(::Type{ImageMeta{T,N,A,P}}) where {T,N,A<:AbstractArray,P} = A
 
 Base.IndexStyle(::Type{M}) where {M<:ImageMeta} = IndexStyle(datatype(M))
 
@@ -231,11 +231,12 @@ Base.get(img::ImageMeta, k::AbstractString, default) = get(img.properties, k, de
 
 # So that defaults don't have to be evaluated unless they are needed,
 # we also define a @get macro (thanks Toivo Hennington):
+struct IMNothing end   # to avoid confusion in the case where dict[key] === nothing
 macro get(img, k, default)
     quote
         img, k = $(esc(img)), $(esc(k))
-        index = Base.ht_keyindex(img.properties, k)
-        (index > 0) ? img.properties.vals[index] : $(esc(default))
+        val = get(img.properties, k, IMNothing())
+        return isa(val, IMNothing) ? $(esc(default)) : val
     end
 end
 
@@ -350,7 +351,7 @@ function check_empty_spatialproperties(img)
 end
 
 #### Low-level utilities ####
-function showdictlines(io::IO, dict::Dict, suppress::Set)
+function showdictlines(io::IO, dict::AbstractDict, suppress::Set)
     for (k, v) in dict
         if k == "suppress"
             continue
@@ -363,7 +364,7 @@ function showdictlines(io::IO, dict::Dict, suppress::Set)
         end
     end
 end
-showdictlines(io::IO, dict::Dict, prop::String) = showdictlines(io, dict, Set([prop]))
+showdictlines(io::IO, dict::AbstractDict, prop::String) = showdictlines(io, dict, Set([prop]))
 
 # printdictval(io::IO, v) = print(io, v)
 # function printdictval(io::IO, v::Vector)
