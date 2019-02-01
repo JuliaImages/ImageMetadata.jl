@@ -32,7 +32,7 @@ export
 Construct an image with `ImageMeta(A, props)` (for a properties dictionary
 `props`), or with `ImageMeta(A, prop1=val1, prop2=val2, ...)`.
 """
-mutable struct ImageMeta{T,N,A<:AbstractArray,P<:AbstractDict{String}} <: AbstractArray{T,N}
+mutable struct ImageMeta{T,N,A<:AbstractArray,P<:AbstractDict{String,Any}} <: AbstractArray{T,N}
     data::A
     properties::P
 
@@ -40,8 +40,10 @@ mutable struct ImageMeta{T,N,A<:AbstractArray,P<:AbstractDict{String}} <: Abstra
         new{T,N,A,P}(data, properties)
     end
 end
-ImageMeta(data::AbstractArray{T,N}, props::AbstractDict{S}) where {T,N,S<:AbstractString} = ImageMeta{T,N,typeof(data),typeof(props)}(data,props)
+ImageMeta(data::AbstractArray{T,N}, props::AbstractDict{String,Any}) where {T,N} = ImageMeta{T,N,typeof(data),typeof(props)}(data,props)
+ImageMeta(data::AbstractArray, props::AbstractDict{<:AbstractString}) = ImageMeta(data, convert(Dict{String,Any}, props))
 ImageMeta(data::AbstractArray; kwargs...) = ImageMeta(data, kwargs2dict(kwargs))
+ImageMeta(data::AbstractArray, props::AbstractDict) = throw(ArgumentError("properties must be an AbstractDict{String,Any}"))
 
 const ImageMetaArray{T,N,A<:Array} = ImageMeta{T,N,A}
 const ImageMetaAxis{T,N,A<:AxisArray} = ImageMeta{T,N,A}
