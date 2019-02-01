@@ -382,6 +382,10 @@ end
                               Axis{:time}(0.1:0.1:0.8)),
                     IdDict{String,Any}("pixelspacing" => (1,1)))
     @test @inferred(pixelspacing(img)) === (1,1)
+
+    rand_img = rand(10,10)
+    dict = Dict("attr1" => 3, "attr2" => 4)
+    @test ImageMeta(rand_img, dict)[1, 1] == rand_img[1, 1]
 end
 
 nothing
