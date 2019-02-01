@@ -1,7 +1,9 @@
-using FixedPointNumbers, Colors, ColorVectorSpace, SimpleTraits, ImageAxes, ImageMetadata, AxisArrays
+using FixedPointNumbers, Colors, ColorVectorSpace, SimpleTraits, ImageAxes, ImageMetadata, OffsetArrays
 using Test
 import Dates: now
 using Unitful: m
+import AxisArrays
+using AxisArrays: AxisArray, axisnames, (..)
 
 @testset "indexing" begin
     # 1d images
@@ -112,6 +114,11 @@ using Unitful: m
     Broi = view(B, 2:3, 2:3)
     @test isa(Broi, ImageMeta)
     @test axisnames(Broi) == (:y, :x)
+
+    # Non-1 indexing
+    Ao = OffsetArray(rand(2,3), 0:1, -1:1)
+    A = ImageMeta(Ao, info="blah")
+    @test axes(A) === axes(Ao)
 end
 
 @testset "convert" begin
