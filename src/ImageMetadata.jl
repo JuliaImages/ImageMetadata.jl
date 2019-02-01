@@ -41,7 +41,8 @@ mutable struct ImageMeta{T,N,A<:AbstractArray,P<:AbstractDict{String,Any}} <: Ab
     end
 end
 ImageMeta(data::AbstractArray{T,N}, props::AbstractDict{String,Any}) where {T,N} = ImageMeta{T,N,typeof(data),typeof(props)}(data,props)
-ImageMeta(data::AbstractArray, props::AbstractDict{<:AbstractString}) = ImageMeta(data, convert(Dict{String,Any}, props))
+ImageMeta(data::AbstractArray{T,N}, props::Dict{String,Any}) where {T,N} = ImageMeta{T,N,typeof(data),typeof(props)}(data,props)
+ImageMeta(data::AbstractArray, props::Dict{<:AbstractString}) = ImageMeta(data, convert(Dict{String,Any}, props))
 ImageMeta(data::AbstractArray; kwargs...) = ImageMeta(data, kwargs2dict(kwargs))
 ImageMeta(data::AbstractArray, props::AbstractDict) = throw(ArgumentError("properties must be an AbstractDict{String,Any}"))
 
