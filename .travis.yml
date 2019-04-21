@@ -13,10 +13,11 @@ matrix:
 notifications:
   email: false
 
-script:
-  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia -e 'import Pkg; Pkg.clone(pwd()); Pkg.build("ImageMetadata")'
-  - julia --check-bounds=yes --color=yes -e 'import Pkg; Pkg.test("ImageMetadata"; coverage=true)'
+# use default script for julia
+# script:
+#   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+#   - julia -e 'import Pkg; Pkg.clone(pwd()); Pkg.build("ImageMetadata")'
+#   - julia --check-bounds=yes --color=yes -e 'import Pkg; Pkg.test("ImageMetadata"; coverage=true)'
 
 after_success:
   # push coverage results to Codecov
