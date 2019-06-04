@@ -50,6 +50,8 @@ const ImageMetaArray{T,N,A<:Array} = ImageMeta{T,N,A}
 const ImageMetaAxis{T,N,A<:AxisArray} = ImageMeta{T,N,A}
 
 Base.size(A::ImageMeta) = size(A.data)
+Base.size(A::ImageMetaAxis, Ax::Axis) = size(A.data, axisdim(A, Ax))
+Base.size(A::ImageMetaAxis, ::Type{Ax}) where {Ax<:Axis} = size(A.data, axisdim(A, Ax))
 Base.axes(A::ImageMeta) = axes(A.data)
 
 datatype(::Type{ImageMeta{T,N,A,P}}) where {T,N,A<:AbstractArray,P} = A

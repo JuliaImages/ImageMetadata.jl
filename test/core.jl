@@ -274,6 +274,8 @@ end
     @test AxisArrays.HasAxes(M) == AxisArrays.HasAxes{true}()
     @test AxisArrays.axes(M) == (Axis{:y}(1:3), Axis{:x}(1:5))
     @test axisdim(M, Axis{:y}) == 1
+    @test size(M, Axis{:y}) == 3
+    @test size(M, Axis{:x}()) == 5
     @test axisdim(M, Axis{:x}) == 2
     @test_throws ErrorException axisdim(M, Axis{:z})
     @test axisnames(M) == (:y, :x)
