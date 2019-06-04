@@ -50,9 +50,11 @@ const ImageMetaArray{T,N,A<:Array} = ImageMeta{T,N,A}
 const ImageMetaAxis{T,N,A<:AxisArray} = ImageMeta{T,N,A}
 
 Base.size(A::ImageMeta) = size(A.data)
-Base.size(A::ImageMetaAxis, Ax::Axis) = size(A.data, axisdim(A, Ax))
-Base.size(A::ImageMetaAxis, ::Type{Ax}) where {Ax<:Axis} = size(A.data, axisdim(A, Ax))
+Base.size(A::ImageMetaAxis, Ax::Axis) = size(A.data, Ax)
+Base.size(A::ImageMetaAxis, ::Type{Ax}) where {Ax<:Axis} = size(A.data, Ax)
 Base.axes(A::ImageMeta) = axes(A.data)
+Base.axes(A::ImageMetaAxis, Ax::Axis) = axes(A.data, Ax)
+Base.axes(A::ImageMetaAxis, ::Type{Ax}) where {Ax<:Axis} = axes(A.data, Ax)
 
 datatype(::Type{ImageMeta{T,N,A,P}}) where {T,N,A<:AbstractArray,P} = A
 
@@ -215,6 +217,7 @@ ImageCore.normedview(::Type{T}, A::ImageMeta{S}) where {T<:FixedPoint,S<:Unsigne
 
 # AxisArrays functions
 AxisArrays.axes(img::ImageMetaAxis) = AxisArrays.axes(img.data)
+AxisArrays.axes(img::ImageMetaAxis, d::Int) = AxisArrays.axes(img.data, d)
 AxisArrays.axisdim(img::ImageMetaAxis, ax) = axisdim(img.data, ax)
 AxisArrays.axisnames(img::ImageMetaAxis) = axisnames(img.data)
 AxisArrays.axisvalues(img::ImageMetaAxis) = axisvalues(img.data)
