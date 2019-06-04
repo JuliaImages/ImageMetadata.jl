@@ -16,5 +16,3 @@ end
 
 include("core.jl")
 include("operations.jl")
-
-nothing
