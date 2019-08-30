@@ -218,6 +218,8 @@ ImageCore.normedview(::Type{T}, A::ImageMeta{S}) where {T<:FixedPoint,S<:Unsigne
 # AxisArrays functions
 AxisArrays.axes(img::ImageMetaAxis) = AxisArrays.axes(img.data)
 AxisArrays.axes(img::ImageMetaAxis, d::Int) = AxisArrays.axes(img.data, d)
+AxisArrays.axes(img::ImageMetaAxis, Ax::Axis) = AxisArrays.axes(img.data, Ax)
+AxisArrays.axes(img::ImageMetaAxis, ::Type{Ax}) where {Ax<:Axis} = AxisArrays.axes(img.data, Ax)
 AxisArrays.axisdim(img::ImageMetaAxis, ax) = axisdim(img.data, ax)
 AxisArrays.axisnames(img::ImageMetaAxis) = axisnames(img.data)
 AxisArrays.axisvalues(img::ImageMetaAxis) = axisvalues(img.data)
