@@ -32,7 +32,7 @@ export
 Construct an image with `ImageMeta(A, props)` (for a properties dictionary
 `props`), or with `ImageMeta(A, prop1=val1, prop2=val2, ...)`.
 """
-mutable struct ImageMeta{T,N,A<:AbstractArray,P<:AbstractDict{String,Any}} <: AbstractArray{T,N}
+mutable struct ImageMeta{T,N,A<:AbstractArray,P<:AbstractDict{Symbol,Any}} <: AbstractArray{T,N}
     data::A
     properties::P
 
@@ -40,11 +40,20 @@ mutable struct ImageMeta{T,N,A<:AbstractArray,P<:AbstractDict{String,Any}} <: Ab
         new{T,N,A,P}(data, properties)
     end
 end
-ImageMeta(data::AbstractArray{T,N}, props::AbstractDict{String,Any}) where {T,N} = ImageMeta{T,N,typeof(data),typeof(props)}(data,props)
-ImageMeta(data::AbstractArray{T,N}, props::Dict{String,Any}) where {T,N} = ImageMeta{T,N,typeof(data),typeof(props)}(data,props)
-ImageMeta(data::AbstractArray, props::Dict{<:AbstractString}) = ImageMeta(data, convert(Dict{String,Any}, props))
-ImageMeta(data::AbstractArray; kwargs...) = ImageMeta(data, kwargs2dict(kwargs))
-ImageMeta(data::AbstractArray, props::AbstractDict) = throw(ArgumentError("properties must be an AbstractDict{String,Any}"))
+
+function ImageMeta(data::AbstractArray{T,N}, props::AbstractDict{Symbol,Any}) where {T,N}
+    return ImageMeta{T,N,typeof(data),typeof(props)}(data,props)
+end
+function ImageMeta(data::AbstractArray{T,N}, props::Dict{Symbol,Any}) where {T,N}
+    return ImageMeta{T,N,typeof(data),typeof(props)}(data,props)
+end
+function ImageMeta(data::AbstractArray, props::Dict{Symbol})
+    return ImageMeta(data, convert(Dict{Symbol,Any}, props))
+end
+function ImageMeta(data::AbstractArray; kwargs...)
+    return ImageMeta(data, kwargs2dict(kwargs))
+end
+ImageMeta(data::AbstractArray, props::AbstractDict) = throw(ArgumentError("properties must be an AbstractDict{Symbol,Any}"))
 
 const ImageMetaArray{T,N,A<:Array} = ImageMeta{T,N,A}
 const ImageMetaAxis{T,N,A<:AxisArray} = ImageMeta{T,N,A}
@@ -123,9 +132,13 @@ Base.view(img::ImageMeta{T,N}, I::Vararg{ViewIndex,N}) where {T,N} = shareproper
 Base.view(img::ImageMeta, i::ViewIndex) = shareproperties(img, view(img.data, i))
 Base.view(img::ImageMeta, I::Vararg{ViewIndex,N}) where {N} = shareproperties(img, view(img.data, I...))
 
-Base.getindex(img::ImageMeta, propname::AbstractString) = img.properties[propname]
+function Base.getindex(img::ImageMeta, propname::Symbol)
+    return img.properties[propname]
+end
 
-Base.setindex!(img::ImageMeta, X, propname::AbstractString) = setindex!(img.properties, X, propname)
+function Base.setindex!(img::ImageMeta, X, propname::Symbol)
+    return setindex!(img.properties, X, propname)
+end
 
 Base.copy(img::ImageMeta) = ImageMeta(copy(img.data), deepcopy(img.properties))
 
@@ -136,7 +149,7 @@ Base.convert(::Type{ImageMeta{T}}, A::ImageMeta) where {T} = shareproperties(A, 
 Base.convert(::Type{ImageMeta{T}}, A::AbstractArray) where {T} = ImageMeta(convert(Array{T}, A))
 
 # copy properties
-function Base.copy!(imgdest::ImageMeta, imgsrc::ImageMeta, prop1::AbstractString, props::AbstractString...)
+function Base.copy!(imgdest::ImageMeta, imgsrc::ImageMeta, prop1::Symbol, props::Symbol...)
     imgdest[prop1] = deepcopy(imgsrc[prop1])
     for p in props
         imgdest[p] = deepcopy(imgsrc[p])
@@ -172,7 +185,8 @@ See also: [`copyproperties`](@ref).
 shareproperties(img::ImageMeta, data::AbstractArray) = ImageMeta(data, img.properties)
 
 # Delete a property!
-Base.delete!(img::ImageMeta, propname::AbstractString) = delete!(img.properties, propname)
+Base.delete!(img::ImageMeta, propname::Symbol) = delete!(img.properties, propname)
+
 
 # Iteration
 # Defer to the array object in case it has special iteration defined
@@ -184,7 +198,7 @@ const emptyset = Set()
 function showim(io::IO, img::ImageMeta)
     IT = typeof(img)
     print(io, eltype(img).name.name, " ImageMeta with:\n  data: ", summary(img.data), "\n  properties:")
-    showdictlines(io, img.properties, get(img, "suppress", emptyset))
+    showdictlines(io, img.properties, get(img, :suppress, emptyset))
 end
 Base.show(io::IO, img::ImageMeta) = showim(io, img)
 Base.show(io::IO, ::MIME"text/plain", img::ImageMeta) = showim(io, img)
@@ -236,9 +250,9 @@ See also: [`data`](@ref).
 """
 properties(img::ImageMeta) = img.properties
 
-Base.haskey(img::ImageMeta, k::AbstractString) = haskey(img.properties, k)
+Base.haskey(img::ImageMeta, k::Symbol) = haskey(img.properties, k)
 
-Base.get(img::ImageMeta, k::AbstractString, default) = get(img.properties, k, default)
+Base.get(img::ImageMeta, k::Symbol, default) = get(img.properties, k, default)
 
 # So that defaults don't have to be evaluated unless they are needed,
 # we also define a @get macro (thanks Toivo Hennington):
@@ -272,7 +286,7 @@ If not specified, it will be computed from `pixelspacing(img)`, placing the
 spacing along the "diagonal".  If desired, you can set this property in terms of
 physical units, and each axis can have distinct units.
 """
-ImageCore.spacedirections(img::ImageMeta) = @get img "spacedirections" spacedirections(data(img))
+ImageCore.spacedirections(img::ImageMeta) = @get img :spacedirections spacedirections(data(img))
 
 ImageCore.sdims(img::ImageMetaAxis) = sdims(data(img))
 
@@ -347,9 +361,9 @@ Return a vector of strings, containing the names of properties that
 have been declared "spatial" and hence should be permuted when calling
 `permutedims`.  Declare such properties like this:
 
-    img["spatialproperties"] = ["spacedirections"]
+    img[:spatialproperties] = [:spacedirections]
 """
-spatialproperties(img::ImageMeta) = @get img "spatialproperties" ["spacedirections"]
+spatialproperties(img::ImageMeta) = @get img :spatialproperties [:spacedirections]
 
 function check_empty_spatialproperties(img)
     sp = spatialproperties(img)
@@ -364,7 +378,7 @@ end
 #### Low-level utilities ####
 function showdictlines(io::IO, dict::AbstractDict, suppress::Set)
     for (k, v) in dict
-        if k == "suppress"
+        if k === :suppress
             continue
         end
         if !in(k, suppress)
@@ -375,7 +389,7 @@ function showdictlines(io::IO, dict::AbstractDict, suppress::Set)
         end
     end
 end
-showdictlines(io::IO, dict::AbstractDict, prop::String) = showdictlines(io, dict, Set([prop]))
+showdictlines(io::IO, dict::AbstractDict, prop::Symbol) = showdictlines(io, dict, Set([prop]))
 
 # printdictval(io::IO, v) = print(io, v)
 # function printdictval(io::IO, v::Vector)
@@ -386,13 +400,14 @@ showdictlines(io::IO, dict::AbstractDict, prop::String) = showdictlines(io, dict
 
 # converts keyword argument to a dictionary
 function kwargs2dict(kwargs)
-    d = Dict{String,Any}()
+    d = Dict{Symbol,Any}()
     for (k, v) in kwargs
-        d[string(k)] = v
+        d[k] = v
     end
     return d
 end
 
 include("operators.jl")
+include("deprecations.jl")
 
 end # module
