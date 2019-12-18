@@ -58,12 +58,12 @@ ImageMeta(data::AbstractArray, props::AbstractDict) = throw(ArgumentError("prope
 const ImageMetaArray{T,N,A<:Array} = ImageMeta{T,N,A}
 const ImageMetaAxis{T,N,A<:AxisArray} = ImageMeta{T,N,A}
 
-Base.size(A::ImageMeta) = size(A.data)
-Base.size(A::ImageMetaAxis, Ax::Axis) = size(A.data, Ax)
-Base.size(A::ImageMetaAxis, ::Type{Ax}) where {Ax<:Axis} = size(A.data, Ax)
-Base.axes(A::ImageMeta) = axes(A.data)
-Base.axes(A::ImageMetaAxis, Ax::Axis) = axes(A.data, Ax)
-Base.axes(A::ImageMetaAxis, ::Type{Ax}) where {Ax<:Axis} = axes(A.data, Ax)
+Base.size(A::ImageMeta) = size(data(A))
+Base.size(A::ImageMetaAxis, Ax::Axis) = size(data(A), Ax)
+Base.size(A::ImageMetaAxis, ::Type{Ax}) where {Ax<:Axis} = size(data(A), Ax)
+Base.axes(A::ImageMeta) = axes(data(A))
+Base.axes(A::ImageMetaAxis, Ax::Axis) = axes(data(A), Ax)
+Base.axes(A::ImageMetaAxis, ::Type{Ax}) where {Ax<:Axis} = axes(data(A), Ax)
 
 datatype(::Type{ImageMeta{T,N,A,P}}) where {T,N,A<:AbstractArray,P} = A
 
@@ -75,45 +75,45 @@ AxisArrays.HasAxes(A::ImageMetaAxis) = AxisArrays.HasAxes{true}()
 for AType in (ImageMeta, ImageMetaAxis)
     @eval begin
         @inline function Base.getindex(img::$AType{T,1}, i::Int) where T
-            @boundscheck checkbounds(img.data, i)
-            @inbounds ret = img.data[i]
+            @boundscheck checkbounds(data(img), i)
+            @inbounds ret = data(img)[i]
             ret
         end
         @inline function Base.getindex(img::$AType, i::Int)
-            @boundscheck checkbounds(img.data, i)
-            @inbounds ret = img.data[i]
+            @boundscheck checkbounds(data(img), i)
+            @inbounds ret = data(img)[i]
             ret
         end
         @inline function Base.getindex(img::$AType{T,N}, I::Vararg{Int,N}) where {T,N}
-            @boundscheck checkbounds(img.data, I...)
-            @inbounds ret = img.data[I...]
+            @boundscheck checkbounds(data(img), I...)
+            @inbounds ret = data(img)[I...]
             ret
         end
 
         @inline function Base.setindex!(img::$AType{T,1}, val, i::Int) where T
-            @boundscheck checkbounds(img.data, i)
-            @inbounds img.data[i] = val
+            @boundscheck checkbounds(data(img), i)
+            @inbounds data(img)[i] = val
             val
         end
         @inline function Base.setindex!(img::$AType, val, i::Int)
-            @boundscheck checkbounds(img.data, i)
-            @inbounds img.data[i] = val
+            @boundscheck checkbounds(data(img), i)
+            @inbounds data(img)[i] = val
             val
         end
         @inline function Base.setindex!(img::$AType{T,N}, val, I::Vararg{Int,N}) where {T,N}
-            @boundscheck checkbounds(img.data, I...)
-            @inbounds img.data[I...] = val
+            @boundscheck checkbounds(data(img), I...)
+            @inbounds data(img)[I...] = val
             val
         end
     end
 end
 
 @inline function Base.getindex(img::ImageMetaAxis, ax::Axis, I...)
-    result = img.data[ax, I...]
+    result = data(img)[ax, I...]
     maybe_wrap(img, result)
 end
 @inline function Base.getindex(img::ImageMetaAxis, i::Union{Integer,AbstractVector,Colon}, I...)
-    result = img.data[i, I...]
+    result = data(img)[i, I...]
     maybe_wrap(img, result)
 end
 maybe_wrap(img::ImageMeta{T}, result::T) where T = result
@@ -121,31 +121,31 @@ maybe_wrap(img::ImageMeta{T}, result::AbstractArray{T}) where T = copyproperties
 
 
 @inline function Base.setindex!(img::ImageMetaAxis, val, ax::Axis, I...)
-    setindex!(img.data, val, ax, I...)
+    setindex!(data(img), val, ax, I...)
 end
 @inline function Base.setindex!(img::ImageMetaAxis, val, i::Union{Integer,AbstractVector,Colon}, I...)
-    setindex!(img.data, val, i, I...)
+    setindex!(data(img), val, i, I...)
 end
 
-Base.view(img::ImageMeta, ax::Axis, I...) = shareproperties(img, view(img.data, ax, I...))
-Base.view(img::ImageMeta{T,N}, I::Vararg{ViewIndex,N}) where {T,N} = shareproperties(img, view(img.data, I...))
-Base.view(img::ImageMeta, i::ViewIndex) = shareproperties(img, view(img.data, i))
-Base.view(img::ImageMeta, I::Vararg{ViewIndex,N}) where {N} = shareproperties(img, view(img.data, I...))
+Base.view(img::ImageMeta, ax::Axis, I...) = shareproperties(img, view(data(img), ax, I...))
+Base.view(img::ImageMeta{T,N}, I::Vararg{ViewIndex,N}) where {T,N} = shareproperties(img, view(data(img), I...))
+Base.view(img::ImageMeta, i::ViewIndex) = shareproperties(img, view(data(img), i))
+Base.view(img::ImageMeta, I::Vararg{ViewIndex,N}) where {N} = shareproperties(img, view(data(img), I...))
 
 function Base.getindex(img::ImageMeta, propname::Symbol)
-    return img.properties[propname]
+    return properties(img)[propname]
 end
 
 function Base.setindex!(img::ImageMeta, X, propname::Symbol)
-    return setindex!(img.properties, X, propname)
+    return setindex!(properties(img), X, propname)
 end
 
-Base.copy(img::ImageMeta) = ImageMeta(copy(img.data), deepcopy(img.properties))
+Base.copy(img::ImageMeta) = ImageMeta(copy(data(img)), deepcopy(properties(img)))
 
 Base.convert(::Type{ImageMeta}, A::ImageMeta) = A
 Base.convert(::Type{ImageMeta}, A::AbstractArray) = ImageMeta(A)
 Base.convert(::Type{ImageMeta{T}}, A::ImageMeta{T}) where {T} = A
-Base.convert(::Type{ImageMeta{T}}, A::ImageMeta) where {T} = shareproperties(A, convert(Array{T}, A.data))
+Base.convert(::Type{ImageMeta{T}}, A::ImageMeta) where {T} = shareproperties(A, convert(Array{T}, data(A)))
 Base.convert(::Type{ImageMeta{T}}, A::AbstractArray) where {T} = ImageMeta(convert(Array{T}, A))
 
 # copy properties
@@ -158,8 +158,8 @@ function Base.copy!(imgdest::ImageMeta, imgsrc::ImageMeta, prop1::Symbol, props:
 end
 
 # similar
-Base.similar(img::ImageMeta, ::Type{T}, shape::Dims) where {T} = ImageMeta(similar(img.data, T, shape), deepcopy(img.properties))
-Base.similar(img::ImageMetaAxis, ::Type{T}) where {T} = ImageMeta(similar(img.data, T), deepcopy(img.properties))
+Base.similar(img::ImageMeta, ::Type{T}, shape::Dims) where {T} = ImageMeta(similar(data(img), T, shape), deepcopy(properties(img)))
+Base.similar(img::ImageMetaAxis, ::Type{T}) where {T} = ImageMeta(similar(data(img), T), deepcopy(properties(img)))
 
 """
     copyproperties(img::ImageMeta, data) -> imgnew
@@ -171,7 +171,7 @@ properties of `imgnew` does not affect the properties of `img`.
 See also: [`shareproperties`](@ref).
 """
 copyproperties(img::ImageMeta, data::AbstractArray) =
-    ImageMeta(data, deepcopy(img.properties))
+    ImageMeta(data, deepcopy(properties(img)))
 
 """
     shareproperties(img::ImageMeta, data) -> imgnew
@@ -182,10 +182,10 @@ synchronized properties; modifying one also affects the other.
 
 See also: [`copyproperties`](@ref).
 """
-shareproperties(img::ImageMeta, data::AbstractArray) = ImageMeta(data, img.properties)
+shareproperties(img::ImageMeta, data::AbstractArray) = ImageMeta(data, properties(img))
 
 # Delete a property!
-Base.delete!(img::ImageMeta, propname::Symbol) = delete!(img.properties, propname)
+Base.delete!(img::ImageMeta, propname::Symbol) = delete!(properties(img), propname)
 
 
 # Iteration
@@ -197,14 +197,14 @@ Base.iterate(img::ImageMeta, s) = Base.iterate(data(img), s)
 const emptyset = Set()
 function showim(io::IO, img::ImageMeta)
     IT = typeof(img)
-    print(io, eltype(img).name.name, " ImageMeta with:\n  data: ", summary(img.data), "\n  properties:")
-    showdictlines(io, img.properties, get(img, :suppress, emptyset))
+    print(io, eltype(img).name.name, " ImageMeta with:\n  data: ", summary(data(img)), "\n  properties:")
+    showdictlines(io, properties(img), get(img, :suppress, emptyset))
 end
 Base.show(io::IO, img::ImageMeta) = showim(io, img)
 Base.show(io::IO, ::MIME"text/plain", img::ImageMeta) = showim(io, img)
 
 function Base.reinterpret(::Type{T}, img::ImageMeta) where {T}
-    shareproperties(img, reinterpret(T, img.data))
+    shareproperties(img, reinterpret(T, data(img)))
 end
 
 
@@ -217,26 +217,26 @@ affect the other.
 
 See also: [`properties`](@ref).
 """
-ImageAxes.data(img::ImageMeta) = img.data   # fixme when deprecation is removed from ImageCore
+ImageAxes.data(img::ImageMeta) = getfield(img, :data)  # fixme when deprecation is removed from ImageCore
 
 function ImageCore.permuteddimsview(A::ImageMeta, perm)
     ip = sortperm([perm...][[coords_spatial(A)...]])  # the inverse spatial permutation
-    permutedims_props!(copyproperties(A, permuteddimsview(A.data, perm)), ip)
+    permutedims_props!(copyproperties(A, permuteddimsview(data(A), perm)), ip)
 end
-ImageCore.channelview(A::ImageMeta) = shareproperties(A, channelview(A.data))
-ImageCore.colorview(::Type{C}, A::ImageMeta{T,N}) where {C<:Colorant,T,N} = shareproperties(A, colorview(C, A.data))
-ImageCore.colorview(::Type{ARGB32}, A::ImageMeta{T,N}) where {T,N} = shareproperties(A, colorview(ARGB32, A.data))
-ImageCore.rawview(A::ImageMeta{T}) where {T<:Real} = shareproperties(A, rawview(A.data))
-ImageCore.normedview(::Type{T}, A::ImageMeta{S}) where {T<:FixedPoint,S<:Unsigned} = shareproperties(A, normedview(T, A.data))
+ImageCore.channelview(A::ImageMeta) = shareproperties(A, channelview(data(A)))
+ImageCore.colorview(::Type{C}, A::ImageMeta{T,N}) where {C<:Colorant,T,N} = shareproperties(A, colorview(C, data(A)))
+ImageCore.colorview(::Type{ARGB32}, A::ImageMeta{T,N}) where {T,N} = shareproperties(A, colorview(ARGB32, data(A)))
+ImageCore.rawview(A::ImageMeta{T}) where {T<:Real} = shareproperties(A, rawview(data(A)))
+ImageCore.normedview(::Type{T}, A::ImageMeta{S}) where {T<:FixedPoint,S<:Unsigned} = shareproperties(A, normedview(T, data(A)))
 
 # AxisArrays functions
-AxisArrays.axes(img::ImageMetaAxis) = AxisArrays.axes(img.data)
-AxisArrays.axes(img::ImageMetaAxis, d::Int) = AxisArrays.axes(img.data, d)
-AxisArrays.axes(img::ImageMetaAxis, Ax::Axis) = AxisArrays.axes(img.data, Ax)
-AxisArrays.axes(img::ImageMetaAxis, ::Type{Ax}) where {Ax<:Axis} = AxisArrays.axes(img.data, Ax)
-AxisArrays.axisdim(img::ImageMetaAxis, ax) = axisdim(img.data, ax)
-AxisArrays.axisnames(img::ImageMetaAxis) = axisnames(img.data)
-AxisArrays.axisvalues(img::ImageMetaAxis) = axisvalues(img.data)
+AxisArrays.axes(img::ImageMetaAxis) = AxisArrays.axes(data(img))
+AxisArrays.axes(img::ImageMetaAxis, d::Int) = AxisArrays.axes(data(img), d)
+AxisArrays.axes(img::ImageMetaAxis, Ax::Axis) = AxisArrays.axes(data(img), Ax)
+AxisArrays.axes(img::ImageMetaAxis, ::Type{Ax}) where {Ax<:Axis} = AxisArrays.axes(data(img), Ax)
+AxisArrays.axisdim(img::ImageMetaAxis, ax) = axisdim(data(img), ax)
+AxisArrays.axisnames(img::ImageMetaAxis) = axisnames(data(img))
+AxisArrays.axisvalues(img::ImageMetaAxis) = axisvalues(data(img))
 
 #### Properties ####
 
@@ -248,11 +248,11 @@ shares storage with `img`, so changes to one affect the other.
 
 See also: [`data`](@ref).
 """
-properties(img::ImageMeta) = img.properties
+properties(img::ImageMeta) = getfield(img, :properties)
 
-Base.haskey(img::ImageMeta, k::Symbol) = haskey(img.properties, k)
+Base.haskey(img::ImageMeta, k::Symbol) = haskey(properties(img), k)
 
-Base.get(img::ImageMeta, k::Symbol, default) = get(img.properties, k, default)
+Base.get(img::ImageMeta, k::Symbol, default) = get(properties(img), k, default)
 
 # So that defaults don't have to be evaluated unless they are needed,
 # we also define a @get macro (thanks Toivo Hennington):
@@ -260,7 +260,7 @@ struct IMNothing end   # to avoid confusion in the case where dict[key] === noth
 macro get(img, k, default)
     quote
         img, k = $(esc(img)), $(esc(k))
-        val = get(img.properties, k, IMNothing())
+        val = get(properties(img), k, IMNothing())
         return isa(val, IMNothing) ? $(esc(default)) : val
     end
 end
@@ -317,13 +317,13 @@ function permutedims_props!(ret::ImageMeta, ip, spatialprops=spatialproperties(r
     if !isempty(spatialprops)
         for prop in spatialprops
             if haskey(ret, prop)
-                a = ret.properties[prop]
+                a = properties(ret)[prop]
                 if isa(a, AbstractVector)
-                    ret.properties[prop] = a[ip]
+                    properties(ret)[prop] = a[ip]
                 elseif isa(a, Tuple)
-                    ret.properties[prop] = a[ip]
+                    properties(ret)[prop] = a[ip]
                 elseif isa(a, AbstractMatrix) && size(a,1) == size(a,2)
-                    ret.properties[prop] = a[ip,ip]
+                    properties(ret)[prop] = a[ip,ip]
                 else
                     error("Do not know how to handle property ", prop)
                 end
@@ -334,24 +334,24 @@ function permutedims_props!(ret::ImageMeta, ip, spatialprops=spatialproperties(r
 end
 
 function permutedims(img::ImageMetaAxis, perm)
-    p = AxisArrays.permutation(perm, axisnames(img.data))
+    p = AxisArrays.permutation(perm, axisnames(data(img)))
     ip = sortperm([p...][[coords_spatial(img)...]])
-    permutedims_props!(copyproperties(img, permutedims(img.data, p)), ip)
+    permutedims_props!(copyproperties(img, permutedims(data(img), p)), ip)
 end
 function permutedims(img::ImageMeta, perm)
     ip = sortperm([perm...][[coords_spatial(img)...]])
-    permutedims_props!(copyproperties(img, permutedims(img.data, perm)), ip)
+    permutedims_props!(copyproperties(img, permutedims(data(img), perm)), ip)
 end
 
 # Note: `adjoint` does not recurse into ImageMeta properties.
 function Base.adjoint(img::ImageMeta{T,2}) where {T<:Real}
     ip = sortperm([2,1][[coords_spatial(img)...]])
-    permutedims_props!(copyproperties(img, adjoint(img.data)), ip)
+    permutedims_props!(copyproperties(img, adjoint(data(img))), ip)
 end
 
 function Base.adjoint(img::ImageMeta{T,1}) where T<:Real
     check_empty_spatialproperties(img)
-    copyproperties(img, img.data')
+    copyproperties(img, data(img)')
 end
 
 """

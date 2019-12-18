@@ -14,7 +14,7 @@ function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{ImageMeta}}
             end
         end
         # Use the properties field of img to create the output
-        ret = ImageMeta(similar(Array{ElType}, axes(bc)), M.properties)
+        ret = ImageMeta(similar(Array{ElType}, axes(bc)), properties(M))
     else
         ret = ImageMeta(similar(Array{ElType}, axes(bc)))
     end

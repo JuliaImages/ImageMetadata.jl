@@ -154,7 +154,7 @@ end
 @testset "copy/similar" begin
     img = ImageMeta(rand(3,5); prop1 = 1, prop2 = [1,2,3])
     img2 = copy(img)
-    @test img2.data == img.data
+    @test data(img2) == data(img)
     img2[2,2] = -1
     @test img2[2,2] < 0
     @test img[2,2] >= 0
@@ -164,7 +164,7 @@ end
     img2 = similar(img)
     @test img2[:prop1] == 1
     @test img2[:prop2] == [1,2,3]
-    @test img2.data != img.data
+    @test data(img2) != data(img)
     img2[:prop3] = 7
     @test !haskey(img, :prop3)
     img2 = similar(img, RGB{Float16}, (Base.OneTo(5),))
@@ -172,7 +172,7 @@ end
     @test img2[:prop2] == [1,2,3]
     @test eltype(img2) == RGB{Float16}
     @test size(img2) == (5,)
-    @test img2.data != img.data
+    @test data(img2) != data(img)
     img2[:prop3] = 7
     @test !haskey(img, :prop3)
 
@@ -180,11 +180,11 @@ end
     B = ImageMeta(A, info="blah")
     C = similar(B)
     @test isa(C, ImageMeta)
-    @test isa(C.data, AxisArray)
+    @test isa(data(C), AxisArray)
     @test eltype(C) == Float64
     C = similar(B, RGB{Float16})
     @test isa(C, ImageMeta)
-    @test isa(C.data, AxisArray)
+    @test isa(data(C), AxisArray)
     @test eltype(C) == RGB{Float16}
 end
 
@@ -337,7 +337,7 @@ end
                     matrix=[1 3; 2 4],
                     tuple=(1,2))
     for imgp in (img', permutedims(img, (2,1)), permuteddimsview(img, (2,1)))
-        @test imgp.data == img.data'
+        @test data(imgp) == data(img)'
         @test imgp[:vector] == [2,1]
         @test imgp[:matrix] == [4 2; 3 1]
         @test imgp[:tuple]  == (2,1)
@@ -353,7 +353,7 @@ end
     @test ndims(Mp) == 2 && isa(Mp, ImageMeta)
 
     M = ImageMeta([1,2,3,4],
-                  spatialproperties=["vector"],
+                  spatialproperties=[:vector],
                   vector=[1])
     @test_throws ErrorException M'
 end
