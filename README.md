@@ -1,7 +1,6 @@
 # ImageMetadata
 
 [![Build Status](https://travis-ci.org/JuliaImages/ImageMetadata.jl.svg?branch=master)](https://travis-ci.org/JuliaImages/ImageMetadata.jl)
-
 [![codecov.io](http://codecov.io/github/JuliaImages/ImageMetadata.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaImages/ImageMetadata.jl?branch=master)
 
 ImageMetadata is a simple package providing utilities for working with
