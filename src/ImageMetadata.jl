@@ -132,13 +132,15 @@ Base.view(img::ImageMeta{T,N}, I::Vararg{ViewIndex,N}) where {T,N} = shareproper
 Base.view(img::ImageMeta, i::ViewIndex) = shareproperties(img, view(data(img), i))
 Base.view(img::ImageMeta, I::Vararg{ViewIndex,N}) where {N} = shareproperties(img, view(data(img), I...))
 
-function Base.getindex(img::ImageMeta, propname::Symbol)
+function Base.getproperty(img::ImageMeta, propname::Symbol)
     return properties(img)[propname]
 end
 
-function Base.setindex!(img::ImageMeta, X, propname::Symbol)
-    return setindex!(properties(img), X, propname)
+function Base.setproperty!(img::ImageMeta, propname::Symbol, X)
+    return setindex!(properties(img), X, propname )
 end
+
+Base.propertynames(img::ImageMeta) = (keys(properties(img))...,)
 
 Base.copy(img::ImageMeta) = ImageMeta(copy(data(img)), deepcopy(properties(img)))
 
@@ -150,11 +152,11 @@ Base.convert(::Type{ImageMeta{T}}, A::AbstractArray) where {T} = ImageMeta(conve
 
 # copy properties
 function Base.copy!(imgdest::ImageMeta, imgsrc::ImageMeta, prop1::Symbol, props::Symbol...)
-    imgdest[prop1] = deepcopy(imgsrc[prop1])
+    setproperty!(imgdest, prop1, deepcopy(getproperty(imgsrc, prop1)))
     for p in props
-        imgdest[p] = deepcopy(imgsrc[p])
+        setproperty!(imgdest, p, deepcopy(getproperty(imgsrc, p)))
     end
-    imgdest
+    return imgdest
 end
 
 # similar
@@ -250,8 +252,10 @@ See also: [`data`](@ref).
 """
 properties(img::ImageMeta) = getfield(img, :properties)
 
-Base.haskey(img::ImageMeta, k::Symbol) = haskey(properties(img), k)
+Base.hasproperty(img::ImageMeta, k::Symbol) = haskey(properties(img), k)
 
+# TODO do we want to keep this so there's an option for retrieving properties with
+# a default condition?
 Base.get(img::ImageMeta, k::Symbol, default) = get(properties(img), k, default)
 
 # So that defaults don't have to be evaluated unless they are needed,
@@ -316,7 +320,7 @@ permutedims
 function permutedims_props!(ret::ImageMeta, ip, spatialprops=spatialproperties(ret))
     if !isempty(spatialprops)
         for prop in spatialprops
-            if haskey(ret, prop)
+            if hasproperty(ret, prop)
                 a = properties(ret)[prop]
                 if isa(a, AbstractVector)
                     properties(ret)[prop] = a[ip]
@@ -368,7 +372,7 @@ spatialproperties(img::ImageMeta) = @get img :spatialproperties [:spacedirection
 function check_empty_spatialproperties(img)
     sp = spatialproperties(img)
     for prop in sp
-        if haskey(img, prop)
+        if hasproperty(img, prop)
             error("spatialproperties must be empty, have $prop")
         end
     end

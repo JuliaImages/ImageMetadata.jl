@@ -23,10 +23,16 @@ import Base: getindex, setindex!, delete!, haskey, get, copy!
            delete!(img, Symbol(propname)))
 
 @deprecate(haskey(img::ImageMeta, k::AbstractString),
-           haskey(img, Symbol(k)))
+           hasproperty(img, Symbol(k)))
 
 @deprecate(get(img::ImageMeta, k::AbstractString, default),
            get(img, k, Symbol(default)))
+
+@deprecate(getindex(img::ImageMeta, propname::Symbol),
+           getproperty(img, propname))
+
+@deprecate(setindex!(img::ImageMeta, X, propname::Symbol),
+           setproperty!(img, propname, X))
 
 function to_dict(dold::AbstractDict{String,Any})
     dnew = Dict{Symbol,Any}()
@@ -35,4 +41,5 @@ function to_dict(dold::AbstractDict{String,Any})
     end
     return dnew
 end
+
 
