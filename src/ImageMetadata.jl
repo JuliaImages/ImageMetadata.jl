@@ -254,8 +254,6 @@ properties(img::ImageMeta) = getfield(img, :properties)
 
 Base.hasproperty(img::ImageMeta, k::Symbol) = haskey(properties(img), k)
 
-# TODO do we want to keep this so there's an option for retrieving properties with
-# a default condition?
 Base.get(img::ImageMeta, k::Symbol, default) = get(properties(img), k, default)
 
 # So that defaults don't have to be evaluated unless they are needed,

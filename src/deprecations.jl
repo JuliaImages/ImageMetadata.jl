@@ -10,12 +10,6 @@ import Base: getindex, setindex!, delete!, haskey, get, copy!
 @deprecate(ImageMeta(data::AbstractArray, props::Dict{<:AbstractString}),
            ImageMeta(data, to_dict(props)))
 
-@deprecate(getindex(img::ImageMeta, propname::AbstractString),
-           getindex(img, Symbol(propname)))
-
-@deprecate(setindex!(img::ImageMeta, X, propname::AbstractString),
-           setindex!(img, X, Symbol(propname)))
-
 @deprecate(copy!(imgdest::ImageMeta, imgsrc::ImageMeta, prop1::AbstractString, props::AbstractString...),
            copy!(imgdest, imgsrc, Symbol(prop1), Symbol.(props)...))
 
@@ -26,7 +20,7 @@ import Base: getindex, setindex!, delete!, haskey, get, copy!
            hasproperty(img, Symbol(k)))
 
 @deprecate(get(img::ImageMeta, k::AbstractString, default),
-           get(img, k, Symbol(default)))
+           get(img, Symbol(k), default))
 
 @deprecate(getindex(img::ImageMeta, propname::Symbol),
            getproperty(img, propname))
