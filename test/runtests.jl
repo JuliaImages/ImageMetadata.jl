@@ -16,3 +16,4 @@ end
 
 include("core.jl")
 include("operations.jl")
+include("deprecations.jl")

@@ -133,7 +133,14 @@ Base.view(img::ImageMeta, i::ViewIndex) = shareproperties(img, view(data(img), i
 Base.view(img::ImageMeta, I::Vararg{ViewIndex,N}) where {N} = shareproperties(img, view(data(img), I...))
 
 function Base.getproperty(img::ImageMeta, propname::Symbol)
-    return properties(img)[propname]
+    # TODO remove these once deprecations are done
+    if propname === :data
+        return getproperty_data(img)
+    elseif propname === :properties
+        return getproperty_properties(img)
+    else
+        return properties(img)[propname]
+    end
 end
 
 function Base.setproperty!(img::ImageMeta, propname::Symbol, X)
@@ -319,13 +326,13 @@ function permutedims_props!(ret::ImageMeta, ip, spatialprops=spatialproperties(r
     if !isempty(spatialprops)
         for prop in spatialprops
             if hasproperty(ret, prop)
-                a = properties(ret)[prop]
+                a = getproperty(ret, prop)
                 if isa(a, AbstractVector)
-                    properties(ret)[prop] = a[ip]
+                    setproperty!(ret, prop, a[ip])
                 elseif isa(a, Tuple)
-                    properties(ret)[prop] = a[ip]
+                    setproperty!(ret, prop, a[ip])
                 elseif isa(a, AbstractMatrix) && size(a,1) == size(a,2)
-                    properties(ret)[prop] = a[ip,ip]
+                    setproperty!(ret, prop, a[ip,ip])
                 else
                     error("Do not know how to handle property ", prop)
                 end

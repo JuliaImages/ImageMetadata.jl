@@ -1,5 +1,5 @@
 # have to import this or @deprecate doesn't work
-import Base: getindex, setindex!, delete!, haskey, get, copy!
+import Base: getindex, setindex!, delete!, haskey, get, copy!, hasproperty, getproperty, setproperty!
 
 @deprecate(ImageMeta(data::AbstractArray{T,N}, props::AbstractDict{String,Any}) where {T,N},
            ImageMeta(data, to_dict(props)))
@@ -19,16 +19,29 @@ import Base: getindex, setindex!, delete!, haskey, get, copy!
 @deprecate(haskey(img::ImageMeta, k::AbstractString),
            hasproperty(img, Symbol(k)))
 
+@deprecate(hasproperty(img::ImageMeta, k::AbstractString),
+           hasproperty(img, Symbol(k)))
+
 @deprecate(get(img::ImageMeta, k::AbstractString, default),
            get(img, Symbol(k), default))
 
-@deprecate(getindex(img::ImageMeta, propname::Symbol),
-           getproperty(img, propname))
+@deprecate(getindex(img::ImageMeta, propname::AbstractString),
+           getproperty(img, Symbol(propname)))
 
-@deprecate(setindex!(img::ImageMeta, X, propname::Symbol),
-           setproperty!(img, propname, X))
+@deprecate(getproperty(img::ImageMeta, propname::AbstractString),
+           getproperty(img, Symbol(propname)))
 
-function to_dict(dold::AbstractDict{String,Any})
+@deprecate(setproperty!(img::ImageMeta, propname::AbstractString, val),
+           setproperty!(img::ImageMeta, Symbol(propname), val))
+
+@deprecate(setindex!(img::ImageMeta, X, propname::AbstractString),
+           setproperty!(img, Symbol(propname), X))
+
+@deprecate(getproperty_data(img), data(img))
+
+@deprecate(getproperty_properties(img), properties(img))
+
+function to_dict(dold::AbstractDict{String})
     dnew = Dict{Symbol,Any}()
     for (k, v) in dold
         dnew[Symbol(k)] = v
