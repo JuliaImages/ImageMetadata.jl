@@ -21,7 +21,9 @@ export
     data,
     properties,
     shareproperties,
-    spatialproperties
+    spatialproperties,
+    # export for < v"1.2"
+    hasproperty
 
 #### types and constructors ####
 
@@ -259,7 +261,13 @@ See also: [`data`](@ref).
 """
 properties(img::ImageMeta) = getfield(img, :properties)
 
-Base.hasproperty(img::ImageMeta, k::Symbol) = haskey(properties(img), k)
+
+if isdefined(Base, :hasproperty) # or VERSION >= v"1.2"
+    import Base: hasproperty
+    Base.hasproperty(img::ImageMeta, k::Symbol) = haskey(properties(img), k)
+else
+    hasproperty(img::ImageMeta, k::Symbol) = haskey(properties(img), k)
+end
 
 Base.get(img::ImageMeta, k::Symbol, default) = get(properties(img), k, default)
 
@@ -415,6 +423,7 @@ function kwargs2dict(kwargs)
     end
     return d
 end
+
 
 include("operators.jl")
 include("deprecations.jl")

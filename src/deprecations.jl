@@ -1,5 +1,5 @@
 # have to import this or @deprecate doesn't work
-import Base: getindex, setindex!, delete!, haskey, get, copy!, hasproperty, getproperty, setproperty!
+import Base: getindex, setindex!, delete!, haskey, get, copy!, getproperty, setproperty!
 
 @deprecate(ImageMeta(data::AbstractArray{T,N}, props::AbstractDict{String,Any}) where {T,N},
            ImageMeta(data, to_dict(props)))
@@ -48,5 +48,3 @@ function to_dict(dold::AbstractDict{String})
     end
     return dnew
 end
-
-
