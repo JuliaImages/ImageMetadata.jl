@@ -37,10 +37,6 @@ import Base: getindex, setindex!, delete!, haskey, get, copy!, getproperty, setp
 @deprecate(setindex!(img::ImageMeta, X, propname::AbstractString),
            setproperty!(img, Symbol(propname), X))
 
-@deprecate(getproperty_data(img), data(img))
-
-@deprecate(getproperty_properties(img), properties(img))
-
 function to_dict(dold::AbstractDict{String})
     dnew = Dict{Symbol,Any}()
     for (k, v) in dold

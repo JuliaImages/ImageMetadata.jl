@@ -10,6 +10,7 @@ import AxisArrays
 import Base: +, -, *, /
 import Base: permutedims
 
+
 const ViewIndex = Union{Base.ViewIndex, Colon}
 
 export
@@ -21,9 +22,7 @@ export
     data,
     properties,
     shareproperties,
-    spatialproperties,
-    # export for < v"1.2"
-    hasproperty
+    spatialproperties
 
 #### types and constructors ####
 
@@ -137,9 +136,11 @@ Base.view(img::ImageMeta, I::Vararg{ViewIndex,N}) where {N} = shareproperties(im
 function Base.getproperty(img::ImageMeta, propname::Symbol)
     # TODO remove these once deprecations are done
     if propname === :data
-        return getproperty_data(img)
+        Base.depwarn("img.data is deprecated use data(img) to extract data img.", :data)
+        return data(img)
     elseif propname === :properties
-        return getproperty_properties(img)
+        Base.depwarn("img.properties is deprecated use properties(img) to extract data img.", :properties)
+        return properties(img)
     else
         return properties(img)[propname]
     end
@@ -264,10 +265,8 @@ properties(img::ImageMeta) = getfield(img, :properties)
 
 if isdefined(Base, :hasproperty) # or VERSION >= v"1.2"
     import Base: hasproperty
-    Base.hasproperty(img::ImageMeta, k::Symbol) = haskey(properties(img), k)
-else
-    hasproperty(img::ImageMeta, k::Symbol) = haskey(properties(img), k)
 end
+hasproperty(img::ImageMeta, k::Symbol) = haskey(properties(img), k)
 
 Base.get(img::ImageMeta, k::Symbol, default) = get(properties(img), k, default)
 
