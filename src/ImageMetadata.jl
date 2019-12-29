@@ -3,7 +3,7 @@ module ImageMetadata
 # The order here is designed to avoid an ambiguity warning in convert,
 # see the top of ImageAxes
 using ImageAxes
-using ImageCore, Colors, FixedPointNumbers
+using ImageCore
 using ColorVectorSpace   # for overriding math operations with Gray/RGB
 import AxisArrays
 

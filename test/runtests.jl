@@ -1,7 +1,7 @@
-using Colors, ColorVectorSpace, FixedPointNumbers, ImageCore, ImageAxes, IndirectArrays
+using ColorVectorSpace, ImageCore, ImageAxes, IndirectArrays
 using Test, Statistics
 
-mods0 = (Colors, ColorVectorSpace, FixedPointNumbers, Statistics, ImageCore, ImageAxes, IndirectArrays, Base, Core)
+mods0 = (ColorVectorSpace, Statistics, ImageCore, ImageAxes, IndirectArrays, Base, Core)
 ambs0 = detect_ambiguities(mods0...)
 
 using ImageMetadata
