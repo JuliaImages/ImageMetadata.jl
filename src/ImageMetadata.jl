@@ -36,10 +36,6 @@ Construct an image with `ImageMeta(A, props)` (for a properties dictionary
 struct ImageMeta{T,N,A<:AbstractArray,P<:AbstractDict{Symbol,Any}} <: AbstractArray{T,N}
     data::A
     properties::P
-
-    function ImageMeta{T,N,A,P}(data::AbstractArray, properties::P) where {T,N,A,P}
-        new{T,N,A,P}(data, properties)
-    end
 end
 
 function ImageMeta(data::AbstractArray{T,N}, props::AbstractDict{Symbol,Any}) where {T,N}
