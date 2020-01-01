@@ -17,7 +17,7 @@ using AxisArrays: AxisArray, axisnames, (..)
         @test IndexStyle(img) == IndexStyle(A)
         @test ndims(img) == 1
         @test size(img) == (3,)
-        @test data(img) === A
+        @test arraydata(img) === A
         for i = 1:3
             @test @inferred(img[i]) === A[i]
         end
@@ -50,7 +50,7 @@ using AxisArrays: AxisArray, axisnames, (..)
         @test IndexStyle(img) == IndexStyle(A)
         @test ndims(img) == 2
         @test size(img) == (3,5)
-        @test data(img) === A
+        @test arraydata(img) === A
         for j = 1:5, i = 1:3
             @test @inferred(img[i,j]) === A[i,j]
         end
@@ -154,7 +154,7 @@ end
 @testset "copy/similar" begin
     img = ImageMeta(rand(3,5); prop1 = 1, prop2 = [1,2,3])
     img2 = copy(img)
-    @test data(img2) == data(img)
+    @test arraydata(img2) == arraydata(img)
     img2[2,2] = -1
     @test img2[2,2] < 0
     @test img[2,2] >= 0
@@ -164,7 +164,7 @@ end
     img2 = similar(img)
     @test img2.prop1 == 1
     @test img2.prop2 == [1,2,3]
-    @test data(img2) != data(img)
+    @test arraydata(img2) != arraydata(img)
     img2.prop3 = 7
     @test !hasproperty(img, :prop3)
     img2 = similar(img, RGB{Float16}, (Base.OneTo(5),))
@@ -172,7 +172,7 @@ end
     @test img2.prop2 == [1,2,3]
     @test eltype(img2) == RGB{Float16}
     @test size(img2) == (5,)
-    @test data(img2) != data(img)
+    @test arraydata(img2) != arraydata(img)
     img2.prop3 = 7
     @test !hasproperty(img, :prop3)
 
@@ -180,11 +180,11 @@ end
     B = ImageMeta(A, info="blah")
     C = similar(B)
     @test isa(C, ImageMeta)
-    @test isa(data(C), AxisArray)
+    @test isa(arraydata(C), AxisArray)
     @test eltype(C) == Float64
     C = similar(B, RGB{Float16})
     @test isa(C, ImageMeta)
-    @test isa(data(C), AxisArray)
+    @test isa(arraydata(C), AxisArray)
     @test eltype(C) == RGB{Float16}
 end
 
@@ -234,7 +234,7 @@ end
         vM1 = channelview(M1)
         @test isa(vM1, ImageMeta)
         @test vM1.date == t1
-        @test data(vM1) == channelview(A1)
+        @test arraydata(vM1) == channelview(A1)
         @test isa(rawview(vM1), ImageMeta)
         if ndims(rawview(vM1)) == 3
             @test rawview(vM1)[1,2,1] === rawview(channelview(A1))[1,2,1]
@@ -246,7 +246,7 @@ end
         M1 = ImageMeta(A1)
         vM1 = normedview(M1)
         @test isa(vM1, ImageMeta)
-        @test data(vM1) == normedview(A1)
+        @test arraydata(vM1) == normedview(A1)
         cvM = colorview(C, vM1)
         @test isa(cvM, ImageMeta)
         @test cvM[1,2] === colorview(C, normedview(A1))[1,2]
@@ -337,7 +337,7 @@ end
                     matrix=[1 3; 2 4],
                     tuple=(1,2))
     for imgp in (img', permutedims(img, (2,1)), permuteddimsview(img, (2,1)))
-        @test data(imgp) == data(img)'
+        @test arraydata(imgp) == arraydata(img)'
         @test imgp.vector == [2,1]
         @test imgp.matrix == [4 2; 3 1]
         @test imgp.tuple  == (2,1)
