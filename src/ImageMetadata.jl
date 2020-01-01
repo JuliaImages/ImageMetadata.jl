@@ -147,7 +147,7 @@ function Base.getproperty(img::ImageMeta, propname::Symbol)
 end
 
 function Base.setproperty!(img::ImageMeta, propname::Symbol, X)
-    return setindex!(properties(img), X, propname )
+    return setindex!(properties(img), X, propname)
 end
 
 Base.propertynames(img::ImageMeta) = (keys(properties(img))...,)
@@ -170,8 +170,8 @@ function Base.copy!(imgdest::ImageMeta, imgsrc::ImageMeta, prop1::Symbol, props:
 end
 
 # similar
-Base.similar(img::ImageMeta, ::Type{T}, shape::Dims) where {T} = ImageMeta(similar(data(img), T, shape), deepcopy(properties(img)))
-Base.similar(img::ImageMetaAxis, ::Type{T}) where {T} = ImageMeta(similar(data(img), T), deepcopy(properties(img)))
+Base.similar(img::ImageMeta, ::Type{T}, shape::Dims) where {T} = ImageMeta(similar(data(img), T, shape), copy(properties(img)))
+Base.similar(img::ImageMetaAxis, ::Type{T}) where {T} = ImageMeta(similar(data(img), T), copy(properties(img)))
 
 """
     copyproperties(img::ImageMeta, data) -> imgnew
@@ -183,7 +183,7 @@ properties of `imgnew` does not affect the properties of `img`.
 See also: [`shareproperties`](@ref).
 """
 copyproperties(img::ImageMeta, data::AbstractArray) =
-    ImageMeta(data, deepcopy(properties(img)))
+    ImageMeta(data, copy(properties(img)))
 
 """
     shareproperties(img::ImageMeta, data) -> imgnew
