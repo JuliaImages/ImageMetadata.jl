@@ -33,7 +33,7 @@ export
 Construct an image with `ImageMeta(A, props)` (for a properties dictionary
 `props`), or with `ImageMeta(A, prop1=val1, prop2=val2, ...)`.
 """
-mutable struct ImageMeta{T,N,A<:AbstractArray,P<:AbstractDict{Symbol,Any}} <: AbstractArray{T,N}
+struct ImageMeta{T,N,A<:AbstractArray,P<:AbstractDict{Symbol,Any}} <: AbstractArray{T,N}
     data::A
     properties::P
 
