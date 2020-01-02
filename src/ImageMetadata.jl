@@ -132,7 +132,7 @@ Base.view(img::ImageMeta, I::Vararg{ViewIndex,N}) where {N} = shareproperties(im
 function Base.getproperty(img::ImageMeta, propname::Symbol)
     # TODO remove these once deprecations are done
     if propname === :data
-        Base.depwarn("img.data is deprecated use arraydata(img) to extract data img.", :data)
+        Base.depwarn("img.data is deprecated use arraydata(img) to extract data img.", :arraydata)
         return arraydata(img)
     elseif propname === :properties
         Base.depwarn("img.properties is deprecated use properties(img) to extract data img.", :properties)
@@ -142,8 +142,20 @@ function Base.getproperty(img::ImageMeta, propname::Symbol)
     end
 end
 
-function Base.setproperty!(img::ImageMeta, propname::Symbol, X)
-    return setindex!(properties(img), X, propname)
+function Base.setproperty!(img::ImageMeta, propname::Symbol, val)
+    # TODO remove these once deprecations are done
+    if propname === :data
+        Base.depwarn("Replacing the data field with is deprecated. Consider creating a new instance of ImageMeta instead.", :rawdata)
+        setindex!(img, val, img)
+    elseif propname === :properties
+        Base.depwarn("Replacing the properties field is deprecated. Consider creating a new instance of ImageMeta instead.", :properties)
+        for (k,v) in val
+            setproperty!(img, k, v)
+        end
+    else
+        properties(img)[propname] = val
+    end
+    return img
 end
 
 Base.propertynames(img::ImageMeta) = (keys(properties(img))...,)
