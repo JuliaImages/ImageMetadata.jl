@@ -17,7 +17,7 @@ using AxisArrays: AxisArray, axisnames, (..)
         @test IndexStyle(img) == IndexStyle(A)
         @test ndims(img) == 1
         @test size(img) == (3,)
-        @test data(img) === A
+        @test arraydata(img) === A
         for i = 1:3
             @test @inferred(img[i]) === A[i]
         end
@@ -34,10 +34,10 @@ using AxisArrays: AxisArray, axisnames, (..)
         @test A[3] == oneunit(eltype(A))
         @test_throws BoundsError img[0]
         @test_throws BoundsError img[4]
-        @test img["prop1"] == 1
-        @test img["prop2"] == [1,2,3]
-        img["prop1"] = -1
-        @test img["prop1"] == -1
+        @test img.prop1 == 1
+        @test img.prop2 == [1,2,3]
+        img.prop1 = -1
+        @test img.prop1 == -1
     end
     for A in (rand(3,5),
               view(rand(4,6), 1:3, 1:5),
@@ -50,7 +50,7 @@ using AxisArrays: AxisArray, axisnames, (..)
         @test IndexStyle(img) == IndexStyle(A)
         @test ndims(img) == 2
         @test size(img) == (3,5)
-        @test data(img) === A
+        @test arraydata(img) === A
         for j = 1:5, i = 1:3
             @test @inferred(img[i,j]) === A[i,j]
         end
@@ -73,10 +73,10 @@ using AxisArrays: AxisArray, axisnames, (..)
         @test_throws BoundsError img[0,0]
         @test_throws BoundsError img[4,1]
         @test_throws BoundsError img[1,6]
-        @test img["prop1"] == 1
-        @test img["prop2"] == [1,2,3]
-        img["prop1"] = -1
-        @test img["prop1"] == -1
+        @test img.prop1 == 1
+        @test img.prop2 == [1,2,3]
+        img.prop1 = -1
+        @test img.prop1 == -1
         # vector-indexing
         @test isa(@inferred(img[:,:]), ImageMeta) && img[:,:] == img
         @test isa(@inferred(img[:]), ImageMeta) && img[:] == A[:]
@@ -139,14 +139,14 @@ end
     M = ImageMeta(A, meta=true)
     Mr = reinterpretc(Gray, M)
     @test eltype(Mr) == Gray{Float32}
-    @test Mr["meta"] = true
+    @test Mr.meta = true
     # Ensure that it gets defined for the formerly un-reinterpretable
     A = zeros(Float32, 4, 5)
     M = ImageMeta(view(A, 1:2:3, 1:4), meta=true)
     Mr = reinterpretc(Gray, M)
     Mr = reinterpretc(Gray{Float32}, M)
     @test eltype(Mr) == Gray{Float32}
-    @test Mr["meta"] = true
+    @test Mr.meta = true
     Mr[:] .= Gray{Float32}(0.5)
     @test all(A[1:2:3,1:4] .== 0.5)
 end
@@ -154,37 +154,37 @@ end
 @testset "copy/similar" begin
     img = ImageMeta(rand(3,5); prop1 = 1, prop2 = [1,2,3])
     img2 = copy(img)
-    @test img2.data == img.data
+    @test arraydata(img2) == arraydata(img)
     img2[2,2] = -1
     @test img2[2,2] < 0
     @test img[2,2] >= 0
-    img2["prop2"][2] = -2
-    @test img2["prop2"] == [1,-2,3]
-    @test img["prop2"] == [1,2,3]
+    img2.prop2[2] = -2
+    @test img2.prop2 == [1,-2,3]
+    @test img.prop2 == [1,2,3]
     img2 = similar(img)
-    @test img2["prop1"] == 1
-    @test img2["prop2"] == [1,2,3]
-    @test img2.data != img.data
-    img2["prop3"] = 7
-    @test !haskey(img, "prop3")
+    @test img2.prop1 == 1
+    @test img2.prop2 == [1,2,3]
+    @test arraydata(img2) != arraydata(img)
+    img2.prop3 = 7
+    @test !hasproperty(img, :prop3)
     img2 = similar(img, RGB{Float16}, (Base.OneTo(5),))
-    @test img2["prop1"] == 1
-    @test img2["prop2"] == [1,2,3]
+    @test img2.prop1 == 1
+    @test img2.prop2 == [1,2,3]
     @test eltype(img2) == RGB{Float16}
     @test size(img2) == (5,)
-    @test img2.data != img.data
-    img2["prop3"] = 7
-    @test !haskey(img, "prop3")
+    @test arraydata(img2) != arraydata(img)
+    img2.prop3 = 7
+    @test !hasproperty(img, :prop3)
 
     A = AxisArray(rand(3,5), :y, :x)
     B = ImageMeta(A, info="blah")
     C = similar(B)
     @test isa(C, ImageMeta)
-    @test isa(C.data, AxisArray)
+    @test isa(arraydata(C), AxisArray)
     @test eltype(C) == Float64
     C = similar(B, RGB{Float16})
     @test isa(C, ImageMeta)
-    @test isa(C.data, AxisArray)
+    @test isa(arraydata(C), AxisArray)
     @test eltype(C) == RGB{Float16}
 end
 
@@ -193,28 +193,28 @@ end
     @test !isempty(properties(img))
     v = view(img, 1:2, 1:2)
     c = img[1:2, 1:2]
-    @test v["prop1"] == 1
-    @test c["prop1"] == 1
+    @test v.prop1 == 1
+    @test c.prop1 == 1
     img2 = copyproperties(img, reshape(1:15, 5, 3))
     @test size(img2) == (5,3)
-    img2["prop1"] = -1
-    @test img["prop1"] == 1
+    img2.prop1 = -1
+    @test img.prop1 == 1
     img2 = shareproperties(img, reshape(1:15, 5, 3))
     @test size(img2) == (5,3)
-    img2["prop1"] = -1
-    @test img["prop1"] == -1
-    @test v["prop1"] == -1
-    @test c["prop1"] == 1
+    img2.prop1 = -1
+    @test img.prop1 == -1
+    @test v.prop1 == -1
+    @test c.prop1 == 1
     imgb = ImageMeta(rand(RGB{N0f8}, 2, 2), propa = "hello", propb = [1,2])
-    copy!(img, imgb, "propa", "propb")
-    @test img["propa"] == "hello"
-    @test img["propb"] == [1,2]
-    img["propb"][2] = 10
-    @test img["propb"] == [1,10]
-    @test imgb["propb"] == [1,2]
-    delete!(img, "propb")
-    @test  haskey(img, "propa")
-    @test !haskey(img, "propb")
+    copy!(img, imgb, :propa, :propb)
+    @test img.propa == "hello"
+    @test img.propb == [1,2]
+    img.propb[2] = 10
+    @test img.propb == [1,10]
+    @test imgb.propb == [1,2]
+    delete!(img, :propb)
+    @test  hasproperty(img, :propa)
+    @test !hasproperty(img, :propb)
 
     img = ImageMeta(AxisArray(rand(3,5,8),
                               Axis{:x}(1:3),
@@ -223,8 +223,8 @@ end
                     prop1 = 1, prop2 = [1,2,3])
     v = view(img, Axis{:time}(0.25..0.5))
     c = img[Axis{:time}(0.25..0.5)]
-    @test v["prop1"] == 1
-    @test c["prop1"] == 1
+    @test v.prop1 == 1
+    @test c.prop1 == 1
 end
 
 @testset "views" begin
@@ -233,8 +233,8 @@ end
         M1 = ImageMeta(A1, date=t1)
         vM1 = channelview(M1)
         @test isa(vM1, ImageMeta)
-        @test vM1["date"] == t1
-        @test data(vM1) == channelview(A1)
+        @test vM1.date == t1
+        @test arraydata(vM1) == channelview(A1)
         @test isa(rawview(vM1), ImageMeta)
         if ndims(rawview(vM1)) == 3
             @test rawview(vM1)[1,2,1] === rawview(channelview(A1))[1,2,1]
@@ -246,7 +246,7 @@ end
         M1 = ImageMeta(A1)
         vM1 = normedview(M1)
         @test isa(vM1, ImageMeta)
-        @test data(vM1) == normedview(A1)
+        @test arraydata(vM1) == normedview(A1)
         cvM = colorview(C, vM1)
         @test isa(cvM, ImageMeta)
         @test cvM[1,2] === colorview(C, normedview(A1))[1,2]
@@ -259,12 +259,12 @@ end
     @test colordim(vM) == 1
     pvM = permutedims(vM, (2,3,1))
     @test colordim(pvM) == 3
-    @test pvM["date"] == t
+    @test pvM.date == t
     sleep(0.1)
-    pvM["date"] = now()
-    @test M["date"] == t && pvM["date"] != t
+    pvM.date = now()
+    @test M.date == t && pvM.date != t
     vM = permuteddimsview(M, (2,1))
-    @test vM["date"] == t
+    @test vM.date == t
     @test axisnames(vM) == (:x, :y)
 end
 
@@ -292,7 +292,7 @@ end
 end
 
 @testset "show" begin
-    for supp in (Set(["prop3"]), "prop3")
+    for supp in (Set([:prop3]), :prop3)
         img = ImageMeta(rand(3,5); prop1 = 1, prop2 = [1,2,3], suppress = supp, prop3 = "hide")
         str = string(img)
         @test occursin("ImageMeta with", str)
@@ -318,7 +318,7 @@ end
     @test @inferred(timedim(img)) == 3
     @test @inferred(pixelspacing(img)) === (1,1)
     @test spacedirections(img) === ((1,0),(0,1))
-    img["spacedirections"] = "broken"
+    img.spacedirections = "broken"
     @test spacedirections(img) == "broken"
     @test sdims(img) == 2
     @test @inferred(coords_spatial(img)) == (1,2)
@@ -332,18 +332,18 @@ end
 
 @testset "spatialprops" begin
     img = ImageMeta(rand(3,5),
-                    spatialproperties=Set(["vector","matrix","tuple"]),
+                    spatialproperties=Set([:vector,:matrix,:tuple]),
                     vector=[1,2],
                     matrix=[1 3; 2 4],
                     tuple=(1,2))
     for imgp in (img', permutedims(img, (2,1)), permuteddimsview(img, (2,1)))
-        @test imgp.data == img.data'
-        @test imgp["vector"] == [2,1]
-        @test imgp["matrix"] == [4 2; 3 1]
-        @test imgp["tuple"]  == (2,1)
-        @test img["vector"] == [1,2]
-        @test img["matrix"] == [1 3; 2 4]
-        @test img["tuple"]  == (1,2)
+        @test arraydata(imgp) == arraydata(img)'
+        @test imgp.vector == [2,1]
+        @test imgp.matrix == [4 2; 3 1]
+        @test imgp.tuple  == (2,1)
+        @test img.vector == [1,2]
+        @test img.matrix == [1 3; 2 4]
+        @test img.tuple  == (1,2)
     end
 end
 
@@ -353,7 +353,7 @@ end
     @test ndims(Mp) == 2 && isa(Mp, ImageMeta)
 
     M = ImageMeta([1,2,3,4],
-                  spatialproperties=["vector"],
+                  spatialproperties=[:vector],
                   vector=[1])
     @test_throws ErrorException M'
 end
@@ -387,11 +387,11 @@ end
                               Axis{:x}(1:3),
                               Axis{:y}(1:5),
                               Axis{:time}(0.1:0.1:0.8)),
-                    IdDict{String,Any}("pixelspacing" => (1,1)))
+                    IdDict{Symbol,Any}(:pixelspacing => (1,1)))
     @test @inferred(pixelspacing(img)) === (1,1)
 
     rand_img = rand(10,10)
-    dict = Dict("attr1" => 3, "attr2" => 4)
+    dict = Dict(:attr1 => 3, :attr2 => 4)
     @test ImageMeta(rand_img, dict)[1, 1] == rand_img[1, 1]
 end
 
