@@ -1,23 +1,12 @@
-# Documentation: http://docs.travis-ci.com/user/languages/julia/
+# Until https://github.com/julia-actions/julia-uploadcodecov/issues/1 get fixed
+# submit coverage report via travis
 language: julia
 os:
   - linux
-  - osx
 julia:
   - 1.0
-  - 1
-  - nightly
-matrix:
-  allow_failures:
-    - julia: nightly
 notifications:
   email: false
-
-# use default script for julia
-# script:
-#   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-#   - julia -e 'import Pkg; Pkg.clone(pwd()); Pkg.build("ImageMetadata")'
-#   - julia --check-bounds=yes --color=yes -e 'import Pkg; Pkg.test("ImageMetadata"; coverage=true)'
 
 after_success:
   # push coverage results to Codecov
