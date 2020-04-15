@@ -266,7 +266,7 @@ AxisArrays.axisvalues(img::ImageMetaAxis) = axisvalues(arraydata(img))
 Extract the properties dictionary `props` for `imgmeta`. `props`
 shares storage with `img`, so changes to one affect the other.
 
-See also: [`data`](@ref).
+See also: [`arraydata`](@ref).
 """
 properties(img::ImageMeta) = getfield(img, :properties)
 
