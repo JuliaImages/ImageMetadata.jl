@@ -27,29 +27,29 @@ _imagemeta(out) = out
 @inline _imagemeta(out, A, As...) = _imagemeta(out, As...)
 
 
-(-)(img::ImageMeta) = shareproperties(img, -data(img))
+(-)(img::ImageMeta) = shareproperties(img, -arraydata(img))
 
 batch2 = (:+, :-)
 
 for op in batch2
     @eval begin
-        ($op)(img::ImageMeta, B::BitArray) = shareproperties(img, ($op)(data(img), B))
-        ($op)(B::BitArray, img::ImageMeta) = shareproperties(img, ($op)(B, data(img)))
+        ($op)(img::ImageMeta, B::BitArray) = shareproperties(img, ($op)(arraydata(img), B))
+        ($op)(B::BitArray, img::ImageMeta) = shareproperties(img, ($op)(B, arraydata(img)))
         ($op)(img::ImageMeta, B::ImageMeta) = ambigop(Symbol($op))
-        ($op)(img::ImageMeta, B::AbstractArray) = shareproperties(img, ($op)(data(img), B))
-        ($op)(B::AbstractArray, img::ImageMeta) = shareproperties(img, ($op)(B, data(img)))
+        ($op)(img::ImageMeta, B::AbstractArray) = shareproperties(img, ($op)(arraydata(img), B))
+        ($op)(B::AbstractArray, img::ImageMeta) = shareproperties(img, ($op)(B, arraydata(img)))
     end
 
     for CV in (:AbstractGray, :TransparentGray, :AbstractRGB, :TransparentRGB)
         @eval begin
             ($op)(img::ImageMeta{CV}, n::$CV) where {CV<:$CV} =
-                shareproperties(img, ($op)(data(img), n))
+                shareproperties(img, ($op)(arraydata(img), n))
             ($op)(n::$CV, img::ImageMeta{CV}) where {CV<:$CV} =
-                shareproperties(img, ($op)(n, data(img)))
+                shareproperties(img, ($op)(n, arraydata(img)))
         end
     end
 end
 
-(/)(img::ImageMeta, n::Number) = shareproperties(img, data(img)/n)
+(/)(img::ImageMeta, n::Number) = shareproperties(img, arraydata(img)/n)
 
 ambigop(s::Symbol) = error("$s with two ImageMeta arrays: dictionary choice is ambiguous")
