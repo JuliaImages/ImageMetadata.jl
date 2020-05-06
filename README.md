@@ -13,7 +13,7 @@ image.
 
 Read the documentation here:
 
-[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://juliaimages.org/latest/imagemetadata/)
+[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://juliaimages.org/latest/pkgs/metadata/)
 
 <!-- URLS -->
 
