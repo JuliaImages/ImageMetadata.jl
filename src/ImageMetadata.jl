@@ -165,8 +165,9 @@ Base.copy(img::ImageMeta) = ImageMeta(copy(arraydata(img)), deepcopy(properties(
 Base.convert(::Type{ImageMeta}, A::ImageMeta) = A
 Base.convert(::Type{ImageMeta}, A::AbstractArray) = ImageMeta(A)
 Base.convert(::Type{ImageMeta{T}}, A::ImageMeta{T}) where {T} = A
-Base.convert(::Type{ImageMeta{T}}, A::ImageMeta) where {T} = shareproperties(A, convert(Array{T}, arraydata(A)))
-Base.convert(::Type{ImageMeta{T}}, A::AbstractArray) where {T} = ImageMeta(convert(Array{T}, A))
+Base.convert(::Type{ImageMeta{T}}, A::ImageMeta) where {T} = shareproperties(A, convert(AbstractArray{T}, arraydata(A)))
+Base.convert(::Type{ImageMeta{T}}, A::AbstractArray{T}) where {T} = ImageMeta(A)
+Base.convert(::Type{ImageMeta{T}}, A::AbstractArray) where {T} = ImageMeta(convert(AbstractArray{T}, A))
 
 # copy properties
 function Base.copy!(imgdest::ImageMeta, imgsrc::ImageMeta, prop1::Symbol, props::Symbol...)

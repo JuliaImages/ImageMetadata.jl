@@ -128,9 +128,10 @@ end
     @test convert(ImageMeta, M) === M
     @test convert(ImageMeta{Float64}, M) === M
     @test eltype(convert(ImageMeta{Gray{Float64}}, M)) == Gray{Float64}
-    @test eltype(convert(ImageMeta{Gray}, M)) == Gray{Float64}
-    @test convert(ImageMeta{Gray}, M) == M
-    @test convert(ImageMeta{Gray}, A) == A
+    metagray = Gray.(M)
+    @test eltype(metagray) == Gray{Float64} && isa(metagray, ImageMeta)
+    @test convert(ImageMeta{Gray{Float64}}, M) == M
+    @test convert(ImageMeta{Gray{Float64}}, A) == A
 end
 
 @testset "reinterpret" begin
