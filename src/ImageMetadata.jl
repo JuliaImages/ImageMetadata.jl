@@ -240,9 +240,9 @@ See also: [`properties`](@ref).
 """
 ImageAxes.arraydata(img::ImageMeta) = getfield(img, :data)
 
-function ImageCore.permuteddimsview(A::ImageMeta, perm)
+function Base.PermutedDimsArray(A::ImageMeta, perm)
     ip = sortperm([perm...][[coords_spatial(A)...]])  # the inverse spatial permutation
-    permutedims_props!(copyproperties(A, permuteddimsview(arraydata(A), perm)), ip)
+    permutedims_props!(copyproperties(A, PermutedDimsArray(arraydata(A), perm)), ip)
 end
 ImageCore.channelview(A::ImageMeta) = shareproperties(A, channelview(arraydata(A)))
 ImageCore.colorview(::Type{C}, A::ImageMeta{T,N}) where {C<:Colorant,T,N} = shareproperties(A, colorview(C, arraydata(A)))

@@ -264,7 +264,7 @@ end
     sleep(0.1)
     pvM.date = now()
     @test M.date == t && pvM.date != t
-    vM = permuteddimsview(M, (2,1))
+    vM = PermutedDimsArray(M, (2,1))
     @test vM.date == t
     @test axisnames(vM) == (:x, :y)
 end
@@ -337,7 +337,7 @@ end
                     vector=[1,2],
                     matrix=[1 3; 2 4],
                     tuple=(1,2))
-    for imgp in (img', permutedims(img, (2,1)), permuteddimsview(img, (2,1)))
+    for imgp in (img', permutedims(img, (2,1)), PermutedDimsArray(img, (2,1)))
         @test arraydata(imgp) == arraydata(img)'
         @test imgp.vector == [2,1]
         @test imgp.matrix == [4 2; 3 1]
