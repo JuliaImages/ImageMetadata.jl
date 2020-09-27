@@ -240,7 +240,7 @@ See also: [`properties`](@ref).
 """
 ImageAxes.arraydata(img::ImageMeta) = getfield(img, :data)
 
-function ImageCore.PermutedDimsArray(A::ImageMeta, perm)
+function Base.PermutedDimsArray(A::ImageMeta, perm)
     ip = sortperm([perm...][[coords_spatial(A)...]])  # the inverse spatial permutation
     permutedims_props!(copyproperties(A, PermutedDimsArray(arraydata(A), perm)), ip)
 end
