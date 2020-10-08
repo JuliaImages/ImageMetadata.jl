@@ -1,3 +1,5 @@
+@info "Beginning deprecation tests"
+
 @testset "Deprecations" begin
     @testset "copy/similar" begin
         img = ImageMeta(rand(3,5); prop1 = 1, prop2 = [1,2,3])
@@ -101,7 +103,7 @@
                         vector=[1,2],
                         matrix=[1 3; 2 4],
                         tuple=(1,2))
-        for imgp in (img', permutedims(img, (2,1)), permuteddimsview(img, (2,1)))
+        for imgp in (img', permutedims(img, (2,1)), PermutedDimsArray(img, (2,1)))
             @test imgp.data == img.data'
             @test imgp["vector"] == [2,1]
             @test imgp["matrix"] == [4 2; 3 1]
