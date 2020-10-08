@@ -227,6 +227,11 @@ Base.show(io::IO, ::MIME"text/plain", img::ImageMeta) = showim(io, img)
 function Base.reinterpret(::Type{T}, img::ImageMeta) where {T}
     shareproperties(img, reinterpret(T, arraydata(img)))
 end
+if Base.VERSION >= v"1.6.0-DEV.1083"
+    function Base.reinterpret(::typeof(reshape), ::Type{T}, img::ImageMeta) where {T}
+        shareproperties(img, reinterpret(reshape, T, arraydata(img)))
+    end
+end
 
 
 """
