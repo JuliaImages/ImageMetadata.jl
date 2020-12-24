@@ -83,11 +83,11 @@ using AxisArrays: AxisArray, axisnames, (..)
         @test isa(@inferred(img[1:2,1:2]), ImageMeta) && img[1:2,1:2] == A[1:2,1:2]
         @test isa(@inferred(img[1:2,:]), ImageMeta) && img[1:2,:] == A[1:2,:]
         @test isa(@inferred(img[:,1:2]), ImageMeta) && img[:,1:2] == A[:,1:2]
-        @test isa(@inferred(view(img,:,:)), ImageMeta) && view(img,:,:) == img
+        Base.VERSION >= v"1.2" && @test isa(@inferred(view(img,:,:)), ImageMeta) && view(img,:,:) == img
         @test isa(@inferred(view(img,:)), ImageMeta) && view(img,:) == A[:]
         @test isa(@inferred(view(img,1:2,1:2)), ImageMeta) && view(img,1:2,1:2) == A[1:2,1:2]
         @test isa(@inferred(view(img,1:2,:)), ImageMeta) && view(img,1:2,:) == A[1:2,:]
-        @test isa(@inferred(view(img,:,1:2)), ImageMeta) && view(img,:,1:2) == A[:,1:2]
+        Base.VERSION >= v"1.2" && @test isa(@inferred(view(img,:,1:2)), ImageMeta) && view(img,:,1:2) == A[:,1:2]
     end
     # Test bounds-checking removal by @inbounds
     if Base.JLOptions().check_bounds != 1 && Base.JLOptions().can_inline == 1
