@@ -11,7 +11,7 @@ IndirectArrays = "9b13fd28-a010-5f03-acff-a1bbcff69959"
 
 [compat]
 AxisArrays = "0.3, 0.4"
-ColorVectorSpace = "0.6, 0.7, 0.8"
+ColorVectorSpace = "0.6, 0.7, 0.8, 0.9"
 ImageAxes = "0.5, 0.6"
 ImageCore = "0.8.1"
 IndirectArrays = "0.5"
