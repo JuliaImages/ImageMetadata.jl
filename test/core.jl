@@ -1,4 +1,4 @@
-using ImageCore, ColorVectorSpace, SimpleTraits, ImageAxes, ImageMetadata, OffsetArrays
+using ImageCore, SimpleTraits, ImageAxes, ImageMetadata, OffsetArrays
 using Test
 import Dates: now
 using Unitful: m
