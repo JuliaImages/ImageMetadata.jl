@@ -4,7 +4,6 @@ module ImageMetadata
 # see the top of ImageAxes
 using ImageAxes
 using ImageCore
-using ColorVectorSpace   # for overriding math operations with Gray/RGB
 import AxisArrays
 
 import Base: +, -, *, /

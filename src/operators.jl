@@ -1,4 +1,4 @@
-using ColorVectorSpace: AbstractGray, TransparentGray, TransparentRGB
+using ImageCore: AbstractGray, TransparentGray, TransparentRGB
 
 # Specialize the low-level broadcasting machinery for ImageMeta.
 # This make it work for all operators, rather than specializing

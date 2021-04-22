@@ -1,4 +1,4 @@
-using ImageMetadata, ImageCore, ColorVectorSpace, Test
+using ImageMetadata, ImageCore, Test
 
 @testset "operations" begin
     function checkmeta(A, B)

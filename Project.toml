@@ -4,16 +4,14 @@ version = "0.9.5"
 
 [deps]
 AxisArrays = "39de3d68-74b9-583c-8d2d-e117c070f3a9"
-ColorVectorSpace = "c3611d14-8923-5661-9e6a-0046d554d3a4"
 ImageAxes = "2803e5a7-5153-5ecf-9a86-9b4c37f5f5ac"
 ImageCore = "a09fc81d-aa75-5fe9-8630-4744c3626534"
 IndirectArrays = "9b13fd28-a010-5f03-acff-a1bbcff69959"
 
 [compat]
 AxisArrays = "0.3, 0.4"
-ColorVectorSpace = "0.6, 0.7, 0.8, 0.9"
 ImageAxes = "0.5, 0.6"
-ImageCore = "0.8.1"
+ImageCore = "0.9"
 IndirectArrays = "0.5"
 julia = "1"
 
