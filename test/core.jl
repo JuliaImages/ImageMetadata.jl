@@ -396,4 +396,23 @@ end
     @test ImageMeta(rand_img, dict)[1, 1] == rand_img[1, 1]
 end
 
+@testset "OffsetArrays" begin
+    if isdefined(OffsetArrays, :centered)
+        # OffsetArrays v1.9+ only
+        @testset "centered" begin
+            check_range(r, f, l) = (@test first(r) == f; @test last(r) == l)
+            check_range_axes(r, f, l) = check_range(axes(r)[1], f, l)
+
+            check_range(Base.axes(OffsetArrays.centered(1:3))[1], -1, 1)
+            a = AxisArray(rand(3, 3), Axis{:y}(0.1:0.1:0.3), Axis{:x}(1:3))
+            am = ImageMeta(a; prop1="simple")
+            ca = OffsetArrays.centered(am)
+            axs = Base.axes(ca)
+            check_range(axs[1], -1, 1)
+            check_range(axs[2], -1, 1)
+            @test Base.axes(arraydata(ca)) == axs
+        end
+    end
+end
+
 nothing
