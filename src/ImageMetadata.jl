@@ -4,6 +4,7 @@ module ImageMetadata
 # see the top of ImageAxes
 using ImageAxes
 using ImageCore
+using ImageCore.OffsetArrays
 import AxisArrays
 
 import Base: +, -, *, /
@@ -262,6 +263,13 @@ AxisArrays.axes(img::ImageMetaAxis, ::Type{Ax}) where {Ax<:Axis} = AxisArrays.ax
 AxisArrays.axisdim(img::ImageMetaAxis, ax) = axisdim(arraydata(img), ax)
 AxisArrays.axisnames(img::ImageMetaAxis) = axisnames(arraydata(img))
 AxisArrays.axisvalues(img::ImageMetaAxis) = axisvalues(arraydata(img))
+
+# OffsetArrays functions
+if isdefined(OffsetArrays, :centered)
+    # Compat for OffsetArrays v1.9
+    # https://github.com/JuliaArrays/OffsetArrays.jl/pull/242
+    OffsetArrays.centered(a::ImageMeta) = ImageMeta(OffsetArrays.centered(arraydata(a)), properties(a))
+end
 
 #### Properties ####
 
