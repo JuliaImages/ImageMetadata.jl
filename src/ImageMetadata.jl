@@ -5,6 +5,7 @@ module ImageMetadata
 using ImageAxes
 using ImageCore
 using ImageCore.OffsetArrays
+using ImageBase
 import AxisArrays
 
 import Base: +, -, *, /
@@ -269,6 +270,12 @@ if isdefined(OffsetArrays, :centered)
     # Compat for OffsetArrays v1.9
     # https://github.com/JuliaArrays/OffsetArrays.jl/pull/242
     OffsetArrays.centered(a::ImageMeta) = ImageMeta(OffsetArrays.centered(arraydata(a)), properties(a))
+end
+
+ImageBase.restrict(img::ImageMeta, ::Tuple{}) = img
+ImageBase.restrict(img::ImageMeta, region::Dims) = shareproperties(img, restrict(arraydata(img), region))
+function ImageBase.restrict(img::ImageMetaAxis, ::Type{Ax}) where Ax
+    shareproperties(img, restrict(arraydata(img), Ax))
 end
 
 #### Properties ####
