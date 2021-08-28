@@ -1,4 +1,4 @@
-using ImageCore, SimpleTraits, ImageAxes, ImageMetadata, OffsetArrays
+using ImageCore, SimpleTraits, ImageAxes, ImageMetadata, OffsetArrays, ImageBase
 using Test
 import Dates: now
 using Unitful: m
@@ -412,6 +412,28 @@ end
             check_range(axs[2], -1, 1)
             @test Base.axes(arraydata(ca)) == axs
         end
+    end
+end
+
+@testset "restrict" begin
+    imgcol = rand(RGB{Float32}, 5, 6)
+
+    for dims in [(), (1, ), (1, 2)]
+        imgmeta = ImageMeta(imgcol, myprop=1)
+
+        out = restrict(imgmeta, dims)
+        @test out isa ImageMeta
+        @test out.myprop == 1
+        @test arraydata(out) == restrict(arraydata(imgmeta), dims)
+    end
+
+    imgcolax = AxisArray(imgcol, :y, :x)
+    for ax in [Axis{:x}, Axis{:y}]
+        imgmetaax = ImageMeta(imgcolax, myprop=1)
+        out = restrict(imgmetaax, ax)
+        @test out isa ImageMeta
+        @test out.myprop == 1
+        @test arraydata(out) == restrict(arraydata(imgmetaax), ax)
     end
 end
 
