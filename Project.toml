@@ -14,7 +14,7 @@ AxisArrays = "0.3, 0.4"
 ImageAxes = "0.5, 0.6"
 ImageBase = "0.1.1"
 ImageCore = "0.9"
-IndirectArrays = "0.5"
+IndirectArrays = "0.5, 1"
 julia = "1"
 
 [extras]
