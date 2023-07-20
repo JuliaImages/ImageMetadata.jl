@@ -1,6 +1,6 @@
 name = "ImageMetadata"
 uuid = "bc367c6b-8a6b-528e-b4bd-a4b897500b49"
-version = "0.9.8"
+version = "0.9.9"
 
 [deps]
 AxisArrays = "39de3d68-74b9-583c-8d2d-e117c070f3a9"
@@ -12,7 +12,7 @@ ImageCore = "a09fc81d-aa75-5fe9-8630-4744c3626534"
 AxisArrays = "0.3, 0.4"
 ImageAxes = "0.5, 0.6"
 ImageBase = "0.1.1"
-ImageCore = "0.9"
+ImageCore = "0.9, 0.10"
 julia = "1"
 
 [extras]
