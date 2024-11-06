@@ -22,8 +22,8 @@ jobs:
             julia-version: '1'
             arch: aarch64
           - os: ubuntu-latest
-            julia-version: '1'
-            arch: min
+            julia-version: 'min'
+            arch: x64
 
     steps:
       - uses: actions/checkout@v4
